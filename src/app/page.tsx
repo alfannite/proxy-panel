@@ -605,10 +605,10 @@ export default function Dashboard() {
                           </span>
                         )}
                       </td>
-                      <td className="py-5 font-mono text-[13px] text-text-muted">
+                      <td className="py-5 font-mono text-[13px] text-text-main/70">
                         {proxy.publicIp || "N/A"}
                       </td>
-                      <td className="py-5 text-text-muted font-mono text-[13px]">{proxy.targetUrl}</td>
+                      <td className="py-5 text-text-main/70 font-mono text-[13px]">{proxy.targetUrl}</td>
                       <td className="py-5 pr-4">
                         <div className="flex justify-center">
                           <button 
@@ -938,10 +938,10 @@ export default function Dashboard() {
                     setUiError("System Error during toggle status");
                   }
                 }}
-                className={`flex items-center justify-between p-4 rounded-xl border ${manageProxy.status === 'stopped' ? 'bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20' : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/20'} transition-all`}
+                className={`flex items-center justify-between p-3.5 rounded-xl border ${manageProxy.status === 'stopped' ? 'bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20' : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/20'} transition-all`}
               >
-                <span className="font-medium">{manageProxy.status === 'stopped' ? 'Start Traefik Service' : 'Stop Traefik Service'}</span>
-                {manageProxy.status === 'stopped' ? <Play className="w-5 h-5" /> : <Power className="w-5 h-5" />}
+                <span className="font-medium text-[14px]">{manageProxy.status === 'stopped' ? 'Start Traefik Service' : 'Stop Traefik Service'}</span>
+                {manageProxy.status === 'stopped' ? <Play className="w-4 h-4" /> : <Power className="w-4 h-4" />}
               </button>
 
               <button
@@ -949,21 +949,23 @@ export default function Dashboard() {
                   setManageProxy(null);
                   handleEditClick(manageProxy);
                 }}
-                className="flex items-center justify-between p-4 rounded-xl border border-border-base bg-surface-hover text-text-main hover:border-primary-500/50 transition-all"
+                className="flex items-center justify-between p-3.5 rounded-xl border border-border-base bg-surface-hover text-text-main hover:border-primary-500/50 transition-all"
               >
-                <span className="font-medium">Edit Configuration</span>
-                <Edit2 className="w-5 h-5 text-text-muted" />
+                <span className="font-medium text-[14px]">Edit Configuration</span>
+                <Edit2 className="w-4 h-4 text-text-muted" />
               </button>
 
-              <button
-                onClick={() => {
-                  setDeleteConfirm(manageProxy.filename);
-                }}
-                className="flex items-center justify-between p-4 rounded-xl border border-accent-rust/20 bg-accent-rust/10 text-accent-rust hover:bg-accent-rust/20 transition-all mt-4"
-              >
-                <span className="font-medium">Delete Service & DNS</span>
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="border-t border-border-base mt-2 pt-4 flex justify-end">
+                <button
+                  onClick={() => {
+                    setDeleteConfirm(manageProxy.filename);
+                  }}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-accent-rust/20 bg-accent-rust/10 text-accent-rust hover:bg-accent-rust/20 transition-all w-full sm:w-auto"
+                >
+                  <span className="font-medium text-[13px]">Delete Service & DNS</span>
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         )}
