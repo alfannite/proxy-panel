@@ -466,8 +466,8 @@ export default function Dashboard() {
 
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
-            <h2 className="text-3xl font-serif text-text-main mb-2">Domain Overview</h2>
-            <p className="text-text-muted text-[15px]">Manage your reverse proxy routing dynamically.</p>
+            <h2 className="text-3xl font-serif text-text-main mb-2">Proxy Overview</h2>
+            <p className="text-text-muted text-[15px]">Dynamic edge routing and ingress orchestration.</p>
           </div>
           <div className="flex items-center gap-3">
             <button
