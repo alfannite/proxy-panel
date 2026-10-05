@@ -5,7 +5,7 @@ import {
   Globe, Activity, Plus, Server, LayoutDashboard,
   Search, Shield, X, ExternalLink, LogOut, User, Info,
   Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2,
-  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw
+  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -297,7 +297,21 @@ export default function Dashboard() {
     setTooltipData(prev => ({ ...prev, visible: false }));
   };
 
-  const renderStatusIcon = (domain: string) => {
+  const renderStatusIcon = (domain: string, status: string) => {
+    if (status === 'stopped') {
+      return (
+        <div 
+          className="flex items-center justify-center mr-3 z-10 cursor-help"
+          onMouseEnter={(e) => handleMouseEnterTooltip(e, 
+            <h4 className="font-bold text-red-500 mb-1 flex items-center gap-2 text-[13px]"><StopCircle className="w-4 h-4" /> Service Stopped</h4>,
+            <p className="text-text-muted leading-relaxed text-[12px]">This reverse proxy service has been manually stopped and is currently inactive.</p>
+          )}
+          onMouseLeave={handleMouseLeaveTooltip}
+        >
+          <StopCircle className="w-4 h-4 text-red-500" />
+        </div>
+      );
+    }
     if (!cfConnected) {
       return (
         <div 
@@ -556,7 +570,7 @@ export default function Dashboard() {
                   filteredProxies.map((proxy, i) => (
                     <tr key={i} className="border-b border-border-base hover:bg-surface-hover/50 transition-colors duration-200 group">
                       <td className="py-5 pl-6 font-medium text-text-main flex items-center gap-3">
-                        {renderStatusIcon(proxy.domain)}
+                        {renderStatusIcon(proxy.domain, proxy.status)}
                         <span className={proxy.status === 'stopped' ? 'line-through text-text-muted' : ''}>{proxy.serviceName}</span>
                       </td>
                       <td className="py-5 text-accent-sage font-medium">
