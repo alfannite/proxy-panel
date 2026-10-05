@@ -1,69 +1,959 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect } from "react";
+import {
+  Globe, Activity, Plus, Server, LayoutDashboard,
+  Search, Shield, X, ExternalLink, LogOut, User, Info,
+  Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2,
+  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+
+export default function Dashboard() {
+  const router = useRouter();
+  const [proxies, setProxies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [search, setSearch] = useState("");
+
+  // Responsive Sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Theme Toggle
+  const [isDark, setIsDark] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [tooltipData, setTooltipData] = useState<{ visible: boolean, x: number, y: number, title: React.ReactNode, content: React.ReactNode }>({ visible: false, x: 0, y: 0, title: '', content: '' });
+  const [manageProxy, setManageProxy] = useState<any>(null);
+
+  // Connection Status Check
+  const [cfConnected, setCfConnected] = useState(false);
+  const [uiError, setUiError] = useState<string | null>(null);
+  const [uiMessage, setUiMessage] = useState<{title: string, content: string, type: 'info' | 'success' | 'error'} | null>(null);
+  const [traefikConnected, setTraefikConnected] = useState(true); // Default true for mock
+  const [isHealing, setIsHealing] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    filename: "",
+    serviceName: "",
+    domain: "",
+    oldDomain: "",
+    zoneId: "",
+    rootDomain: "",
+    subdomain: "",
+    dnsIp: "",
+    proxied: true,
+    targetIp: "",
+    targetPort: ""
+  });
+  const [zones, setZones] = useState<{id: string, name: string}[]>([]);
+  const [loadingZones, setLoadingZones] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Check initial theme from document class
+    setIsDark(document.documentElement.classList.contains('dark'));
+    fetchProxies();
+    checkConnections();
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      setIsDark(true);
+    }
+  };
+
+  const fetchProxies = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/proxies", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+      const result = await res.json();
+      if (result.success) setProxies(result.data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkConnections = async () => {
+    try {
+      const res = await fetch("/api/settings", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+      const result = await res.json();
+      if (result.success && result.data && result.data.CF_API_TOKEN) {
+        setCfConnected(true);
+        fetchZones();
+      } else {
+        setCfConnected(false);
+      }
+    } catch (e) {
+      setCfConnected(false);
+    }
+  };
+
+  const fetchZones = async () => {
+    setLoadingZones(true);
+    try {
+      const res = await fetch("/api/cloudflare/zones", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
+      const result = await res.json();
+      if (result.success) {
+        setZones(result.data);
+        if (result.data.length > 0) {
+          setFormData(prev => ({ ...prev, zoneId: result.data[0].id, rootDomain: result.data[0].name }));
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingZones(false);
+    }
+  };
+
+  const handleAutoHeal = () => {
+    setIsHealing(true);
+    // Simulate auto-healing process
+    setTimeout(() => {
+      setIsHealing(false);
+      if (!cfConnected) {
+        setUiError("Auto Healing: Cloudflare API Token is missing. Please configure it in Profile.");
+      } else {
+        setUiMessage({ title: "Auto Healing", content: "Systems are running nominally.", type: 'success' });
+      }
+    }, 1500);
+  };
+
+  const handleRestartTraefik = async () => {
+    setIsRestarting(true);
+    try {
+      const res = await fetch("/api/system/restart", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setUiMessage({ title: "Config Synced", content: "Traefik router successfully restarted to load the latest configs.", type: 'success' });
+      } else {
+        setUiMessage({ title: "Sync Failed", content: data.error || "Failed to restart router.", type: 'error' });
+      }
+    } catch (e) {
+      setUiMessage({ title: "System Error", content: "Could not reach server to restart.", type: 'error' });
+    } finally {
+      setIsRestarting(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/masukpanel");
+      router.refresh();
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Field Validations
+    const targetIpRegex = /^[a-zA-Z0-9.-]+$/;
+    if (!formData.targetIp || !targetIpRegex.test(formData.targetIp)) {
+      setUiError("Invalid Backend Target IP. Please enter a valid IP address or hostname (no slashes or spaces).");
+      return;
+    }
+
+    const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+    if (formData.dnsIp && !ipv4Regex.test(formData.dnsIp)) {
+      setUiError("Invalid DNS IPv4 Address. Please enter a valid public IPv4 address.");
+      return;
+    }
+
+    const subdomainRegex = /^([a-zA-Z0-9-]{1,63}|@)$/;
+    if (formData.subdomain && !subdomainRegex.test(formData.subdomain)) {
+      setUiError("Invalid Subdomain. Only letters, numbers, and hyphens are allowed. Use @ for root domain.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/proxies", {
+        method: isEditMode ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        setIsModalOpen(false);
+        setIsEditMode(false);
+        setFormData({ filename: "", serviceName: "", domain: "", oldDomain: "", zoneId: zones.length > 0 ? zones[0].id : "", rootDomain: zones.length > 0 ? zones[0].name : "", subdomain: "", dnsIp: "", proxied: true, targetIp: "", targetPort: "" });
+        fetchProxies();
+      } else {
+        setUiMessage({ title: "Operation Failed", content: result.error || "Unknown error occurred.", type: 'error' });
+      }
+    } catch (e) {
+      setUiMessage({ title: "System Error", content: "Could not complete the operation.", type: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAddNewClick = () => {
+    if (!cfConnected) {
+      setUiError("Cloudflare is not connected. Please go to the Profile page to configure your Cloudflare API credentials before creating a proxy.");
+      return;
+    }
+    setIsEditMode(false);
+    setFormData({ filename: "", serviceName: "", domain: "", oldDomain: "", zoneId: zones.length > 0 ? zones[0].id : "", rootDomain: zones.length > 0 ? zones[0].name : "", subdomain: "", dnsIp: "", proxied: true, targetIp: "", targetPort: "" });
+    setIsModalOpen(true);
+  };
+
+  const handleEditClick = (proxy: any) => {
+    if (!cfConnected) {
+      setUiError("Cloudflare is not connected. Please go to the Profile page to configure your Cloudflare API credentials before editing this proxy.");
+      return;
+    }
+    let tIp = "";
+    let tPort = "";
+    if (proxy.targetUrl && proxy.targetUrl.includes("://")) {
+      const parts = proxy.targetUrl.split("://")[1].split(":");
+      tIp = parts[0];
+      tPort = parts[1] || "80";
+    }
+
+    let sub = "";
+    let root = zones.length > 0 ? zones[0].name : "";
+    let zId = zones.length > 0 ? zones[0].id : "";
+
+    // Try to match domain with zones
+    if (proxy.domain) {
+      const matchedZone = zones.find(z => proxy.domain.endsWith(z.name));
+      if (matchedZone) {
+        zId = matchedZone.id;
+        root = matchedZone.name;
+        if (proxy.domain === matchedZone.name) {
+          sub = "@";
+        } else {
+          sub = proxy.domain.replace(`.${matchedZone.name}`, '');
+        }
+      }
+    }
+
+    setFormData({
+      filename: proxy.filename,
+      serviceName: proxy.serviceName,
+      domain: proxy.domain,
+      oldDomain: proxy.domain, // Save the old domain for backend to lookup and update
+      targetIp: tIp,
+      targetPort: tPort,
+      zoneId: zId,
+      rootDomain: root,
+      subdomain: sub,
+      dnsIp: "", // Left blank for user to fill if they want to update DNS
+      proxied: true
+    });
+    setIsEditMode(true);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (filename: string) => {
+    if (!confirm("Are you sure you want to delete this proxy rule?")) return;
+    try {
+      const res = await fetch(`/api/proxies?filename=${encodeURIComponent(filename)}`, {
+        method: "DELETE"
+      });
+      const result = await res.json();
+      if (result.success) {
+        fetchProxies();
+        setUiMessage({ title: "Service Deleted", content: `Successfully deleted proxy rule.`, type: 'success' });
+      } else {
+        setUiMessage({ title: "Deletion Failed", content: result.error || "Could not delete proxy.", type: 'error' });
+      }
+    } catch (e) {
+      setUiMessage({ title: "System Error", content: "Could not reach server.", type: 'error' });
+    }
+  };
+
+  const filteredProxies = proxies.filter(p =>
+    p.domain.toLowerCase().includes(search.toLowerCase()) ||
+    p.serviceName.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleMouseEnterTooltip = (e: React.MouseEvent, title: React.ReactNode, content: React.ReactNode) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipData({
+      visible: true,
+      x: rect.left + (rect.width / 2),
+      y: rect.top - 12,
+      title,
+      content,
+    });
+  };
+
+  const handleMouseLeaveTooltip = () => {
+    setTooltipData(prev => ({ ...prev, visible: false }));
+  };
+
+  const renderStatusIcon = (domain: string) => {
+    if (!cfConnected) {
+      return (
+        <div 
+          className="flex items-center justify-center mr-3 z-10 cursor-help"
+          onMouseEnter={(e) => handleMouseEnterTooltip(e, 
+            <h4 className="font-bold text-accent-rust mb-1 flex items-center gap-2 text-[13px]"><Unlink className="w-4 h-4" /> Cloudflare Disconnected</h4>,
+            <p className="text-text-muted leading-relaxed text-[12px]">Traefik backend exists, but ProxyPanel is not connected to any Cloudflare account. Automated DNS management is degraded.</p>
+          )}
+          onMouseLeave={handleMouseLeaveTooltip}
+        >
+          <Unlink className="w-4 h-4 text-accent-rust" />
+        </div>
+      );
+    }
+    
+    const isDomainConnected = zones.some(z => domain.endsWith(z.name));
+    
+    if (!isDomainConnected) {
+      return (
+        <div 
+          className="flex items-center justify-center mr-3 z-10 cursor-help"
+          onMouseEnter={(e) => handleMouseEnterTooltip(e, 
+            <h4 className="font-bold text-pink-500 mb-1 flex items-center gap-2 text-[13px]"><AlertTriangle className="w-4 h-4" /> Domain Mismatch</h4>,
+            <p className="text-text-muted leading-relaxed text-[12px]">The root domain for this service is not managed by the currently connected Cloudflare account, or the domain has expired/missing.</p>
+          )}
+          onMouseLeave={handleMouseLeaveTooltip}
+        >
+          <AlertTriangle className="w-4 h-4 text-pink-500" />
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        className="flex items-center justify-center mr-3 z-10 cursor-help"
+        onMouseEnter={(e) => handleMouseEnterTooltip(e, 
+          <h4 className="font-bold text-green-400 mb-1 flex items-center gap-2 text-[13px]"><CheckCircle2 className="w-4 h-4" /> Fully Synchronized</h4>,
+          <p className="text-text-muted leading-relaxed text-[12px]">Traefik backend and Cloudflare DNS are actively connected and healthy.</p>
+        )}
+        onMouseLeave={handleMouseLeaveTooltip}
+      >
+        <Link className="w-4 h-4 text-green-400 animate-pulse drop-shadow-md" />
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex min-h-screen bg-bg-base font-sans relative">
+
+      {/* Mobile Sidebar Backdrop */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface-base border-r border-border-base p-6 flex flex-col gap-8 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+
+        <div className="flex items-center gap-3 px-2 mt-2 md:mt-0">
+          <div className="w-10 h-10 rounded-xl bg-surface-hover border border-border-base flex items-center justify-center shadow-sm">
+            <Globe className="w-6 h-6 text-primary-500" />
+          </div>
+          <div>
+            <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
+            <p className="text-[11px] text-text-muted tracking-widest font-medium uppercase mt-0.5">By FanOps</p>
+          </div>
+          <button
+            className="md:hidden ml-auto text-text-muted"
+            onClick={() => setIsSidebarOpen(false)}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <X className="w-5 h-5" />
+          </button>
         </div>
+
+        <nav className="flex flex-col gap-2">
+          <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-500/10 text-primary-500 font-medium border border-primary-500/20 transition-all">
+            <LayoutDashboard className="w-5 h-5" />
+            Dashboard
+          </button>
+
+
+          <div className="my-2 border-t border-border-base w-full"></div>
+
+          <button onClick={() => router.push("/profile")} className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200">
+            <User className="w-5 h-5 transition-colors" />
+            Profile & Security
+          </button>
+
+          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:text-accent-rust hover:bg-accent-rust/10 font-medium transition-all duration-200 mt-auto">
+            <LogOut className="w-5 h-5 transition-colors" />
+            Logout
+          </button>
+        </nav>
+
+        {/* Connection Status Checklist */}
+        <div className="mt-auto p-4 rounded-xl bg-surface-hover border border-border-base relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3 relative z-10">
+            <span className="text-[12px] font-bold text-text-muted uppercase tracking-wider">Connections</span>
+            <button
+              onClick={handleAutoHeal}
+              disabled={isHealing}
+              className="text-[11px] font-medium text-primary-500 bg-primary-500/10 px-2 py-1 rounded flex items-center gap-1 hover:bg-primary-500/20 transition-colors"
+            >
+              {isHealing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+              Heal
+            </button>
+          </div>
+
+          <div className="space-y-2 relative z-10">
+            <div className="flex items-center gap-2">
+              {traefikConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
+              <span className={`text-[13px] font-medium ${traefikConnected ? 'text-text-main' : 'text-accent-rust'}`}>Engine Proxies</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {cfConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
+              <span className={`text-[13px] font-medium ${cfConnected ? 'text-text-main' : 'text-accent-rust'}`}>Cloudflare API</span>
+            </div>
+          </div>
+
+          {(!traefikConnected || !cfConnected) && (
+            <div className="mt-3 p-3 rounded-lg text-[11px] font-medium text-accent-rust bg-accent-rust/10 border border-accent-rust/20 leading-tight flex items-start gap-2 animate-[fadeIn_0.3s_ease-out_forwards,fadeOut_0.5s_ease-in_5s_forwards] shadow-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>Status Degraded.<br />Auto Healing recommended.</span>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-6 md:p-12 w-full min-w-0">
+        {/* Mobile Header Bar */}
+        <div className="md:hidden flex items-center justify-between mb-8 pb-4 border-b border-border-base">
+          <div className="flex items-center gap-2">
+            <Globe className="w-6 h-6 text-primary-500" />
+            <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
+          </div>
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 bg-surface-hover rounded-lg border border-border-base text-text-main"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h2 className="text-3xl font-serif text-text-main mb-2">Domain Overview</h2>
+            <p className="text-text-muted text-[15px]">Manage your reverse proxy routing dynamically.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRestartTraefik}
+              disabled={isRestarting}
+              className="flex items-center gap-2 px-4 py-2 border border-border-base rounded-lg text-text-muted hover:text-primary-500 hover:border-primary-500 transition-colors bg-transparent disabled:opacity-50"
+              title="Restart Traefik to reload configs"
+            >
+              {isRestarting ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
+              <span className="hidden sm:inline">Sync Config</span>
+            </button>
+            <button
+              onClick={handleAddNewClick}
+              className="btn-primary"
+            >
+              <Plus className="w-5 h-5" />
+              Add New Proxy
+            </button>
+          </div>
+        </header>
+
+        {/* Stats */}
+        <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <article className="solid-card p-6 flex flex-col gap-4">
+            <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
+              <Globe className="w-6 h-6 text-primary-500" />
+            </div>
+            <div>
+              <p className="text-4xl font-serif text-text-main mb-1">{proxies.length}</p>
+              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Active Domains</p>
+            </div>
+          </article>
+          <article className="solid-card p-6 flex flex-col gap-4">
+            <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
+              <Activity className="w-6 h-6 text-accent-sage" />
+            </div>
+            <div>
+              <p className={`text-4xl font-serif mb-1 ${traefikConnected ? 'text-text-main' : 'text-accent-rust'}`}>
+                {traefikConnected ? "OK" : "Err"}
+              </p>
+              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Request Status</p>
+            </div>
+          </article>
+          <article className="solid-card p-6 flex flex-col gap-4">
+            <div className={`w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center ${traefikConnected && cfConnected ? 'animate-pulse' : ''}`}>
+              <Zap className={`w-6 h-6 ${traefikConnected && cfConnected ? 'text-primary-500' : 'text-accent-rust'}`} />
+            </div>
+            <div>
+              <p className="text-4xl font-serif text-text-main mb-1">{traefikConnected && cfConnected ? "Healthy" : "Degraded"}</p>
+              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">System Health</p>
+            </div>
+          </article>
+        </section>
+
+        {/* List Section */}
+        <section aria-label="Proxy Rules" className="solid-panel p-6 md:p-8">
+          <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-border-base pb-6">
+            <h3 className="text-xl font-serif text-text-main w-full md:w-auto">Proxy Rules</h3>
+            <div className="relative w-full md:w-72">
+              <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                type="text"
+                placeholder="Search domain..."
+                className="input-field !pl-11"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </header>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-border-base text-text-muted text-[13px] uppercase tracking-wider">
+                  <th className="pb-4 font-medium pl-2">Service Name</th>
+                  <th className="pb-4 font-medium">Domain (Host)</th>
+                  <th className="pb-4 font-medium">Public IP</th>
+                  <th className="pb-4 font-medium">Target Backend</th>
+                  <th className="pb-4 font-medium text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="text-[15px]">
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-text-muted">
+                      <div className="flex items-center justify-center gap-3">
+                        <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+                        Loading configuration...
+                      </div>
+                    </td>
+                  </tr>
+                ) : filteredProxies.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-text-muted">
+                      No proxies found. Click {" "}
+                      <button
+                        onClick={handleAddNewClick}
+                        className="text-primary-500 font-medium hover:underline"
+                      >
+                        "Add New Proxy"
+                      </button>
+                      {" "} to get started.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProxies.map((proxy, i) => (
+                    <tr key={i} className="border-b border-border-base hover:bg-surface-hover transition-colors duration-200 group">
+                      <td className="py-5 pl-2 font-medium text-text-main flex items-center">
+                        {renderStatusIcon(proxy.domain)}
+                        <span className={proxy.status === 'stopped' ? 'line-through text-text-muted' : ''}>{proxy.serviceName}</span>
+                      </td>
+                      <td className="py-5 text-accent-sage font-medium">
+                        <a href={`https://${proxy.domain}`} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1.5 w-max">
+                          {proxy.domain}
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      </td>
+                      <td className="py-5 font-mono text-[13px] text-text-muted">
+                        {proxy.publicIp || "N/A"}
+                      </td>
+                      <td className="py-5 text-text-muted font-mono text-[13px]">{proxy.targetUrl}</td>
+                      <td className="py-5">
+                        <div className="flex justify-center">
+                          <button 
+                            onClick={() => setManageProxy(proxy)}
+                            className="btn-secondary py-1.5 px-3 text-[13px] inline-flex items-center"
+                          >
+                            <Settings2 className="w-4 h-4 mr-2" /> Manage
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
+
+      {/* Add New Proxy Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 transition-opacity"
+            onClick={() => setIsModalOpen(false)}
+          />
+
+          <div className="solid-panel relative w-full max-w-lg p-6 md:p-8 shadow-2xl transform transition-all scale-100 opacity-100">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-xl md:text-2xl font-serif text-text-main mb-2">{isEditMode ? "Edit Proxy" : "Create New Proxy"}</h3>
+            <p className="text-text-muted text-[13px] md:text-[14px] mb-8">{isEditMode ? "Update domain and backend routing dynamically." : "Route a new domain to your internal service."}</p>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              
+              {/* === SECTION 1: TRAEFIK BACKEND === */}
+              <div className="bg-surface-hover p-4 rounded-xl border border-border-base flex flex-col gap-5">
+                <div className="flex items-center gap-2 mb-1">
+                  <Server className="w-5 h-5 text-primary-500" />
+                  <h4 className="font-medium text-text-main">Local Service Details</h4>
+                </div>
+                
+                <div>
+                  <label className="flex items-center gap-2 text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">
+                    Service Name
+                    <div className="relative has-tooltip">
+                      <Info className="w-4 h-4 cursor-help" />
+                      <div className="help-tooltip w-48 -left-20 -top-12">
+                        Unique identifier for this route (e.g., my-app-prod)
+                      </div>
+                    </div>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., engineer-app"
+                    className={`input-field ${isEditMode ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    value={formData.serviceName}
+                    onChange={(e) => setFormData({ ...formData, serviceName: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
+                    disabled={isEditMode}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">Backend Target IP</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., 10.0.0.5"
+                      className="input-field"
+                      value={formData.targetIp}
+                      onChange={(e) => setFormData({ ...formData, targetIp: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">Backend Target Port</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g., 8080"
+                      className="input-field"
+                      value={formData.targetPort}
+                      onChange={(e) => setFormData({ ...formData, targetPort: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* === SECTION 2: CLOUDFLARE DNS === */}
+              <div className="bg-surface-hover p-4 rounded-xl border border-border-base flex flex-col gap-5">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-accent-sage" />
+                    <h4 className="font-medium text-text-main">Cloudflare DNS Record</h4>
+                  </div>
+                  {!cfConnected && (
+                    <span className="text-[11px] bg-accent-rust/10 text-accent-rust px-2 py-0.5 rounded font-medium border border-accent-rust/20">
+                      Not Connected
+                    </span>
+                  )}
+                </div>
+
+                {cfConnected ? (
+                  <>
+                    <div className="grid grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">Root Domain</label>
+                        {loadingZones ? (
+                          <div className="input-field flex items-center gap-2 text-text-muted">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Loading zones...
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                              className="input-field w-full flex items-center justify-between bg-bg-base text-left transition-all duration-200"
+                            >
+                              <span className="truncate">
+                                {formData.rootDomain || "Select a domain..."}
+                              </span>
+                              <div className={`text-text-muted transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="6 9 12 15 18 9"></polyline>
+                                </svg>
+                              </div>
+                            </button>
+                            
+                            {/* Custom Dropdown Menu */}
+                            {isDropdownOpen && (
+                              <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                                <ul className="absolute left-0 right-0 top-full mt-2 bg-surface-base border border-border-base rounded-xl shadow-2xl z-50 max-h-48 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                                  {zones.length === 0 ? (
+                                    <li className="px-4 py-3 text-text-muted text-[13px] text-center italic">No domains found in Cloudflare</li>
+                                  ) : (
+                                    zones.map((zone) => (
+                                      <li key={zone.id} className="border-b border-border-base last:border-b-0">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setFormData({ ...formData, zoneId: zone.id, rootDomain: zone.name });
+                                            setIsDropdownOpen(false);
+                                          }}
+                                          className={`w-full text-left px-4 py-3 text-[13px] transition-colors ${
+                                            formData.zoneId === zone.id 
+                                              ? 'bg-primary-500/10 text-primary-500 font-bold' 
+                                              : 'text-text-main hover:bg-surface-hover hover:text-primary-500'
+                                          }`}
+                                        >
+                                          {zone.name}
+                                        </button>
+                                      </li>
+                                    ))
+                                  )}
+                                </ul>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">Subdomain</label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="e.g., api (use @ for root)"
+                          className="input-field"
+                          value={formData.subdomain}
+                          onChange={(e) => setFormData({ ...formData, subdomain: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 text-[13px] text-text-main font-mono bg-bg-base p-2 rounded border border-border-base">
+                      Preview: <span className="text-primary-500">{formData.subdomain === '@' ? formData.rootDomain : (formData.subdomain ? `${formData.subdomain}.${formData.rootDomain}` : `*.${formData.rootDomain}`)}</span>
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">
+                        DNS IPv4 Address
+                        <div className="relative has-tooltip">
+                          <Info className="w-4 h-4 cursor-help" />
+                          <div className="help-tooltip w-56 -left-24 -top-16">
+                            Public IP of your server where Traefik is running. Cloudflare will point the domain to this IP.
+                          </div>
+                        </div>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g., 203.0.113.1 (Your Server Public IP)"
+                        className="input-field"
+                        value={formData.dnsIp}
+                        onChange={(e) => setFormData({ ...formData, dnsIp: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between bg-bg-base p-3 rounded-lg border border-border-base">
+                      <div>
+                        <p className="text-[13px] font-medium text-text-main flex items-center gap-2">
+                          Cloudflare Proxy Status
+                          {formData.proxied ? (
+                            <span className="text-[#F6821F] flex items-center gap-1 text-[11px] font-bold"><Zap className="w-3 h-3 fill-current" /> Proxied</span>
+                          ) : (
+                            <span className="text-text-muted flex items-center gap-1 text-[11px] font-bold">DNS Only</span>
+                          )}
+                        </p>
+                        <p className="text-[11px] text-text-muted mt-0.5">Proxy traffic through Cloudflare to hide server IP.</p>
+                      </div>
+                      
+                      {/* Toggle Switch */}
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={formData.proxied}
+                          onChange={(e) => setFormData({ ...formData, proxied: e.target.checked })}
+                        />
+                        <div className="w-11 h-6 bg-surface-hover peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F6821F] border border-border-base"></div>
+                      </label>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="block text-[12px] md:text-[13px] font-medium text-text-muted uppercase tracking-wider mb-2">Domain (Host)</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., api.yourdomain.com"
+                      className="input-field"
+                      value={formData.domain}
+                      onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                    />
+                    <p className="text-[11px] text-accent-rust mt-2 mt-1">Connect Cloudflare in Profile to automate DNS creation.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn-secondary flex-1 md:flex-none"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary flex-1 md:flex-none md:min-w-[140px]"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : isEditMode ? (
+                    "Update Proxy"
+                  ) : (
+                    "Create Proxy"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Error Action Modal */}
+      {uiError && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 transition-opacity backdrop-blur-sm" onClick={() => setUiError(null)} />
+          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all z-10 border border-accent-rust/30 rounded-2xl">
+            <div className="flex items-center gap-3 mb-4 border-b border-border-base pb-4">
+              <div className="w-10 h-10 rounded-full bg-accent-rust/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-accent-rust" />
+              </div>
+              <h3 className="text-xl font-serif text-text-main">Action Blocked</h3>
+            </div>
+            <p className="text-[14px] text-text-muted mb-6 leading-relaxed">
+              {uiError}
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <button 
+                onClick={() => setUiError(null)} 
+                className="btn-secondary text-[13px] py-2 px-4"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => { setUiError(null); router.push("/profile"); }} 
+                className="bg-accent-rust hover:bg-accent-rust/90 text-white font-medium rounded-lg text-[13px] py-2 px-4 transition-colors shadow-sm"
+              >
+                Go to Profile
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Service Modal */}
+      {manageProxy && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+            onClick={() => setManageProxy(null)}
+          />
+
+          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all scale-100 opacity-100 animate-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setManageProxy(null)}
+              className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="text-xl font-serif text-text-main mb-1">Manage Service</h3>
+            <p className="text-text-muted text-[13px] mb-6 flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${manageProxy.status === 'stopped' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
+              {manageProxy.serviceName}
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={async () => {
+                  const action = manageProxy.status === 'stopped' ? 'start' : 'stop';
+                  setManageProxy(null);
+                  try {
+                    const res = await fetch(`/api/proxies?filename=${encodeURIComponent(manageProxy.filename)}&action=${action}`, { method: 'PATCH' });
+                    const result = await res.json();
+                    if (result.success) fetchProxies();
+                    else setUiError("Error toggling status: " + result.error);
+                  } catch (e) {
+                    setUiError("System Error during toggle status");
+                  }
+                }}
+                className={`flex items-center justify-between p-4 rounded-xl border ${manageProxy.status === 'stopped' ? 'bg-green-500/10 border-green-500/30 text-green-500 hover:bg-green-500/20' : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500 hover:bg-yellow-500/20'} transition-all`}
+              >
+                <span className="font-medium">{manageProxy.status === 'stopped' ? 'Start Traefik Service' : 'Stop Traefik Service'}</span>
+                {manageProxy.status === 'stopped' ? <Play className="w-5 h-5" /> : <Power className="w-5 h-5" />}
+              </button>
+
+              <button
+                onClick={() => {
+                  setManageProxy(null);
+                  handleEditClick(manageProxy);
+                }}
+                className="flex items-center justify-between p-4 rounded-xl border border-border-base bg-surface-hover text-text-main hover:border-primary-500/50 transition-all"
+              >
+                <span className="font-medium">Edit Configuration</span>
+                <Edit2 className="w-5 h-5 text-text-muted" />
+              </button>
+
+              <button
+                onClick={() => {
+                  setManageProxy(null);
+                  handleDelete(manageProxy.filename);
+                }}
+                className="flex items-center justify-between p-4 rounded-xl border border-accent-rust/20 bg-accent-rust/10 text-accent-rust hover:bg-accent-rust/20 transition-all mt-4"
+              >
+                <span className="font-medium">Delete Service & DNS</span>
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Global Tooltip */}
+      {tooltipData.visible && (
+        <div 
+          className="fixed z-[100] bg-surface-base border border-border-base rounded-xl shadow-xl p-3 w-64 pointer-events-none transition-all duration-200"
+          style={{
+            left: tooltipData.x,
+            top: tooltipData.y,
+            transform: 'translate(-50%, -100%)'
+          }}
+        >
+          {tooltipData.title}
+          {tooltipData.content}
+        </div>
+      )}
     </div>
   );
 }

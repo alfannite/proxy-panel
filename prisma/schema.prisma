@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Proxy {
+  id          String   @id @default(cuid())
+  serviceName String   @unique
+  domain      String   @unique
+  targetIp    String
+  targetPort  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabel baru untuk nyimpan Pengaturan (seperti API Key Cloudflare)
+// Pakai sistem Key-Value biar fleksibel kalau nanti mau nambah API lain (DigitalOcean, AWS, dll)
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}

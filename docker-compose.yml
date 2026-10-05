@@ -1,0 +1,74 @@
+services:
+  traefik-core:
+    image: traefik:v2.11
+    container_name: traefik-core
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Jakarta
+      # Isi token ini jika kamu menggunakan DNS Challenge Cloudflare untuk SSL Traefik
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-data:/opt/proxy/traefik-core
+    command: >
+      sh -c "
+      if [ ! -f /opt/proxy/traefik-core/acme.json ]; then touch /opt/proxy/traefik-core/acme.json && chmod 600 /opt/proxy/traefik-core/acme.json; fi &&
+      if [ -f /opt/proxy/traefik-core/.env.traefik ]; then export $$(cat /opt/proxy/traefik-core/.env.traefik | xargs); fi &&
+      traefik
+      --api.insecure=true
+      --providers.file.directory=/opt/proxy/traefik-core/rules
+      --providers.file.watch=true
+      --entrypoints.web.address=:80
+      --entrypoints.websecure.address=:443
+      --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      --certificatesresolvers.cloudflare.acme.email=$${CF_EMAIL:-admin@example.com}
+      --certificatesresolvers.cloudflare.acme.storage=/opt/proxy/traefik-core/acme.json
+      "
+    networks:
+      - proxypanel-net
+
+  proxypanel:
+    build: .
+    container_name: proxypanel
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - HOSTNAME=0.0.0.0
+      - JWT_SECRET=super_secret_jwt_key_12345_ganti_ini
+      - DATABASE_URL=file:/app/prisma/dev.db
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik-data:/opt/proxy/traefik-core
+      - prisma-data:/app/prisma
+    networks:
+      - proxypanel-net
+
+  prisma-studio:
+    image: node:20
+    container_name: prisma-studio
+    restart: always
+    ports:
+      - "5555:5555"
+    working_dir: /app
+    environment:
+      - DATABASE_URL=file:/app/prisma/dev.db
+    volumes:
+      - prisma-data:/app/prisma
+    command: sh -c "npm install -g prisma@5.22.0 && npx prisma studio --schema=prisma/schema.prisma --port 5555 --hostname 0.0.0.0"
+    networks:
+      - proxypanel-net
+
+networks:
+  proxypanel-net:
+    driver: bridge
+
+volumes:
+  traefik-data:
+  prisma-data:

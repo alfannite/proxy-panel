@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.git
+.gitignore
+.next
+.vscode
+.agents
+.claude
+.cursor
+.devin
+README.md
+*.md
+prisma/*.db
+prisma/*.db-journal
+# Simpan folder public tapi hiraukan source code build artifacts lain

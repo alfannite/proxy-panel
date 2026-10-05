@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #FDF6ED;
+  --color-primary-100: #FAEAD3;
+  --color-primary-300: #EAB876;
+  --color-primary-500: #C97D3C;
+  --color-primary-600: #AD6530;
+  --color-primary-700: #8C4F27;
+
+  --color-accent-sage: #8A9A7E;
+  --color-accent-rust: #B5593E;
+  --color-accent-sand: #D9B88F;
+
+  /* Theme agnostic variables mapping */
+  --color-bg-base: var(--theme-bg);
+  --color-surface-base: var(--theme-surface);
+  --color-surface-hover: var(--theme-surface-hover);
+  --color-border-base: var(--theme-border);
+  --color-text-main: var(--theme-text-main);
+  --color-text-muted: var(--theme-text-muted);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* LIGHT MODE (Dove Gray Warmth) */
+  --theme-bg: #FAF8F6;
+  --theme-surface: #FFFFFF;
+  --theme-surface-hover: #F3F0EC;
+  --theme-border: #E8E3DD;
+  --theme-text-main: #1E1B18;
+  --theme-text-muted: #6B625A;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root.dark {
+  /* DARK MODE */
+  --theme-bg: #1C1A17;
+  --theme-surface: #262320;
+  --theme-surface-hover: #302C28;
+  --theme-border: #3D3833;
+  --theme-text-main: #F2EDE6;
+  --theme-text-muted: #B8AFA4;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base styles enforcing the Warm/Cozy theme */
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-main);
+  font-family: "Inter", sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+@layer utilities {
+  .solid-panel {
+    @apply bg-surface-base border border-border-base shadow-sm rounded-2xl;
+  }
+  .solid-card {
+    @apply bg-surface-base border border-border-base rounded-2xl transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)];
+  }
+  .solid-card:hover {
+    @apply bg-surface-hover scale-[1.02] shadow-md;
+  }
+  
+  .input-field {
+    @apply w-full bg-bg-base border border-border-base rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200 text-text-main placeholder-text-muted;
+  }
+  
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-md flex items-center justify-center gap-2;
+  }
+  .btn-secondary {
+    @apply bg-surface-hover hover:bg-border-base border border-border-base text-text-main font-medium py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2;
+  }
+
+  /* Tooltip Contextual System */
+  .help-tooltip {
+    @apply absolute z-50 bg-surface-base border border-border-base text-text-muted text-[13px] p-2 rounded-lg shadow-md opacity-0 invisible transition-all duration-150 ease-in translate-y-1;
+  }
+  .has-tooltip:hover .help-tooltip,
+  .has-tooltip:focus-within .help-tooltip {
+    @apply opacity-100 visible translate-y-0;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; visibility: visible; }
+  to { opacity: 0; visibility: hidden; }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dark-bg); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dark-border); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-600); 
 }
