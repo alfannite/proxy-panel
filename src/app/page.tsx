@@ -5,7 +5,7 @@ import {
   Globe, Activity, Plus, Server, LayoutDashboard,
   Search, Shield, X, ExternalLink, LogOut, User, Info,
   Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2,
-  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle
+  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle, Network, Cloud
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -525,9 +525,14 @@ export default function Dashboard() {
         </section>
 
         {/* List Section */}
-        <section aria-label="Proxy Rules" className="solid-panel p-6 md:p-8">
+        <section aria-label="List Proxy" className="solid-panel p-6 md:p-8">
           <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-border-base pb-6">
-            <h3 className="text-xl font-serif text-text-main w-full md:w-auto">Proxy Rules</h3>
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="p-2 bg-primary-500/10 rounded-lg border border-primary-500/20">
+                <Network className="w-5 h-5 text-primary-500" />
+              </div>
+              <h3 className="text-xl font-serif text-text-main">List Proxy</h3>
+            </div>
             <div className="relative w-full md:w-72">
               <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input
@@ -546,6 +551,7 @@ export default function Dashboard() {
                 <tr className="bg-surface-hover/80 text-text-main text-[12px] font-bold uppercase tracking-widest border-b border-border-base">
                   <th className="py-4 pl-6 font-semibold w-1/4">Service Name</th>
                   <th className="py-4 font-semibold w-1/4">Routing Domain</th>
+                  <th className="py-4 font-semibold">Cloudflare</th>
                   <th className="py-4 font-semibold">Public IP</th>
                   <th className="py-4 font-semibold">Target Backend</th>
                   <th className="py-4 font-semibold text-center pr-4">Action</th>
@@ -554,7 +560,7 @@ export default function Dashboard() {
               <tbody className="text-[14px]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center text-text-muted">
+                    <td colSpan={6} className="py-16 text-center text-text-muted">
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                         Loading configuration...
@@ -563,7 +569,7 @@ export default function Dashboard() {
                   </tr>
                 ) : filteredProxies.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-16 text-center text-text-muted">
+                    <td colSpan={6} className="py-16 text-center text-text-muted">
                       No proxies found. Click {" "}
                       <button
                         onClick={handleAddNewClick}
@@ -587,6 +593,17 @@ export default function Dashboard() {
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       </td>
+                      <td className="py-5">
+                        {cfConnected ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#F38020]/10 text-[#F38020] border border-[#F38020]/20 shadow-[0_0_10px_-2px_rgba(243,128,32,0.2)]">
+                            <Cloud className="w-3 h-3" /> Proxied
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-surface-hover text-text-muted border border-border-base">
+                            Local
+                          </span>
+                        )}
+                      </td>
                       <td className="py-5 font-mono text-[13px] text-text-muted">
                         {proxy.publicIp || "N/A"}
                       </td>
@@ -595,9 +612,13 @@ export default function Dashboard() {
                         <div className="flex justify-center">
                           <button 
                             onClick={() => setManageProxy(proxy)}
-                            className="btn-secondary py-1.5 px-4 text-[13px] inline-flex items-center shadow-sm"
+                            className="group relative px-5 py-2 rounded-xl text-[13px] font-medium bg-surface-base border border-border-base text-text-main overflow-hidden transition-all duration-300 hover:border-primary-500/50 hover:shadow-[0_0_15px_-3px_rgba(235,100,52,0.2)]"
                           >
-                            <Settings2 className="w-4 h-4 mr-2 opacity-70" /> Manage
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary-500/0 via-primary-500/10 to-primary-500/0 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+                            <span className="relative flex items-center gap-2">
+                              <Settings2 className="w-4 h-4 text-text-muted group-hover:text-primary-500 transition-colors duration-300" />
+                              Manage
+                            </span>
                           </button>
                         </div>
                       </td>
