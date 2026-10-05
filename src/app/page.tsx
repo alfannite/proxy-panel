@@ -612,13 +612,13 @@ export default function Dashboard() {
 
       {/* Add New Proxy Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
           <div
-            className="absolute inset-0 bg-black/40 transition-opacity"
+            className="absolute inset-0 transition-opacity"
             onClick={() => setIsModalOpen(false)}
           />
 
-          <div className="solid-panel relative w-full max-w-lg p-6 md:p-8 shadow-2xl transform transition-all scale-100 opacity-100">
+          <div className="solid-panel relative w-full max-w-lg p-6 md:p-8 shadow-2xl animate-[slideIn_0.2s_ease-out]">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
@@ -897,13 +897,13 @@ export default function Dashboard() {
 
       {/* Manage Service Modal */}
       {manageProxy && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+            className="absolute inset-0 transition-opacity"
             onClick={() => setManageProxy(null)}
           />
 
-          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all scale-100 opacity-100 animate-in zoom-in-95 duration-200">
+          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl animate-[slideIn_0.2s_ease-out]">
             <button
               onClick={() => setManageProxy(null)}
               className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
