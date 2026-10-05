@@ -8,6 +8,7 @@ import {
   Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle, Network, Cloud
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Modal } from "@/components/Modal";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -632,14 +633,8 @@ export default function Dashboard() {
       </main>
 
       {/* Add New Proxy Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
-          <div
-            className="absolute inset-0 transition-opacity"
-            onClick={() => setIsModalOpen(false)}
-          />
-
-          <div className="solid-panel relative w-full max-w-lg p-6 md:p-8 shadow-2xl animate-[slideIn_0.2s_ease-out]">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} zIndex={50}>
+        <div className="solid-panel relative w-full w-[500px] max-w-[90vw] p-6 md:p-8 shadow-2xl">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
@@ -881,13 +876,10 @@ export default function Dashboard() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Error Action Modal */}
-      {uiError && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 transition-opacity backdrop-blur-sm" onClick={() => setUiError(null)} />
+      <Modal isOpen={!!uiError} onClose={() => setUiError(null)} zIndex={60}>
           <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all z-10 border border-accent-rust/30 rounded-2xl">
             <div className="flex items-center gap-3 mb-4 border-b border-border-base pb-4">
               <div className="w-10 h-10 rounded-full bg-accent-rust/10 flex items-center justify-center flex-shrink-0">
@@ -913,18 +905,11 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Manage Service Modal */}
-      {manageProxy && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
-          <div
-            className="absolute inset-0 transition-opacity"
-            onClick={() => setManageProxy(null)}
-          />
-
-          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl animate-[slideIn_0.2s_ease-out]">
+      <Modal isOpen={!!manageProxy} onClose={() => setManageProxy(null)} zIndex={60}>
+        <div className="solid-panel relative w-full w-[380px] max-w-[90vw] p-6 shadow-2xl">
             <button
               onClick={() => setManageProxy(null)}
               className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
@@ -980,8 +965,7 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
       {/* Global Tooltip */}
       {tooltipData.visible && (
         <div 
@@ -998,9 +982,8 @@ export default function Dashboard() {
       )}
 
       {/* Custom Delete Confirmation Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-surface-base border border-border-base rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative p-6 animate-[slideIn_0.2s_ease-out]">
+      <Modal isOpen={!!deleteConfirm} onClose={() => setDeleteConfirm(null)} zIndex={60}>
+        <div className="bg-surface-base border border-border-base rounded-2xl w-full w-[380px] max-w-[90vw] overflow-hidden shadow-2xl relative p-6">
             <div className="flex items-center gap-3 mb-4 text-accent-rust">
               <AlertTriangle className="w-6 h-6" />
               <h3 className="text-lg font-serif font-bold text-text-main">Delete Service?</h3>
@@ -1023,13 +1006,11 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* UI Messages Modal */}
-      {uiMessage && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-md bg-black/20 animate-[fadeIn_0.2s_ease-out]">
-          <div className="bg-surface-base border border-border-base rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative p-6 text-center animate-[slideIn_0.2s_ease-out]">
+      <Modal isOpen={!!uiMessage} onClose={() => setUiMessage(null)} zIndex={70}>
+        <div className="bg-surface-base border border-border-base rounded-2xl w-full w-[380px] max-w-[90vw] overflow-hidden shadow-2xl relative p-6 text-center">
             <div className={`mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center ${
               uiMessage.type === 'success' ? 'bg-accent-sage/20 text-accent-sage' : 
               uiMessage.type === 'error' ? 'bg-accent-rust/20 text-accent-rust' : 
@@ -1048,8 +1029,7 @@ export default function Dashboard() {
               Okay
             </button>
           </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 }
