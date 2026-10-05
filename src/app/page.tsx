@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [cfConnected, setCfConnected] = useState(false);
   const [uiError, setUiError] = useState<string | null>(null);
   const [uiMessage, setUiMessage] = useState<{title: string, content: string, type: 'info' | 'success' | 'error'} | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [traefikConnected, setTraefikConnected] = useState(true); // Default true for mock
   const [isHealing, setIsHealing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
@@ -259,8 +260,12 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (filename: string) => {
-    if (!confirm("Are you sure you want to delete this proxy rule?")) return;
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+    const filename = deleteConfirm;
+    setDeleteConfirm(null);
+    setManageProxy(null);
+    
     try {
       const res = await fetch(`/api/proxies?filename=${encodeURIComponent(filename)}`, {
         method: "DELETE"
@@ -945,8 +950,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() => {
-                  setManageProxy(null);
-                  handleDelete(manageProxy.filename);
+                  setDeleteConfirm(manageProxy.filename);
                 }}
                 className="flex items-center justify-between p-4 rounded-xl border border-accent-rust/20 bg-accent-rust/10 text-accent-rust hover:bg-accent-rust/20 transition-all mt-4"
               >
@@ -969,6 +973,60 @@ export default function Dashboard() {
         >
           {tooltipData.title}
           {tooltipData.content}
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-md bg-black/40 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-surface-base border border-border-base rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative p-6 animate-[slideIn_0.2s_ease-out]">
+            <div className="flex items-center gap-3 mb-4 text-accent-rust">
+              <AlertTriangle className="w-6 h-6" />
+              <h3 className="text-lg font-serif font-bold text-text-main">Delete Service?</h3>
+            </div>
+            <p className="text-text-muted text-sm mb-6 leading-relaxed">
+              Are you sure you want to delete this proxy rule? This action will permanently remove the configuration.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setDeleteConfirm(null)} 
+                className="flex-1 py-2.5 rounded-xl border border-border-base text-text-main hover:bg-surface-hover font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete} 
+                className="flex-1 py-2.5 rounded-xl bg-accent-rust text-white font-medium hover:bg-accent-rust/90 shadow-lg shadow-accent-rust/20 transition-colors"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* UI Messages Modal */}
+      {uiMessage && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-md bg-black/20 animate-[fadeIn_0.2s_ease-out]">
+          <div className="bg-surface-base border border-border-base rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative p-6 text-center animate-[slideIn_0.2s_ease-out]">
+            <div className={`mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center ${
+              uiMessage.type === 'success' ? 'bg-accent-sage/20 text-accent-sage' : 
+              uiMessage.type === 'error' ? 'bg-accent-rust/20 text-accent-rust' : 
+              'bg-primary-500/20 text-primary-500'
+            }`}>
+              {uiMessage.type === 'success' ? <CheckCircle2 className="w-6 h-6" /> : 
+               uiMessage.type === 'error' ? <AlertTriangle className="w-6 h-6" /> : 
+               <Info className="w-6 h-6" />}
+            </div>
+            <h3 className="text-lg font-serif font-bold text-text-main mb-2">{uiMessage.title}</h3>
+            <p className="text-text-muted text-sm mb-6 leading-relaxed">{uiMessage.content}</p>
+            <button 
+              onClick={() => setUiMessage(null)} 
+              className="w-full py-2.5 rounded-xl bg-surface-hover border border-border-base text-text-main font-medium hover:border-primary-500/50 transition-colors"
+            >
+              Okay
+            </button>
+          </div>
         </div>
       )}
     </div>
