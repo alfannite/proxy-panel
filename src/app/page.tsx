@@ -168,7 +168,7 @@ export default function Dashboard() {
     }
 
     const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    if (formData.dnsIp && !ipv4Regex.test(formData.dnsIp)) {
+    if (formData.dnsIp && !formData.dnsIp.includes('*') && !ipv4Regex.test(formData.dnsIp)) {
       setUiError("Invalid DNS IPv4 Address. Please enter a valid public IPv4 address.");
       return;
     }
