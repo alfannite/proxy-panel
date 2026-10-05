@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="https://img.icons8.com/color/120/000000/network.png" alt="ProxyPanel Logo" />
+  <h1>🌐 ProxyPanel</h1>
+  <p><strong>A Modern, Dynamic Reverse Proxy Management Dashboard</strong></p>
+  <p>Built with Next.js, Traefik, and Cloudflare integration for seamless reverse proxy routing.</p>
 
-## Getting Started
+  <div>
+    <img src="https://img.shields.io/badge/Next.js-15.0-black?logo=next.js" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Traefik-Dynamic-blue?logo=traefikproxy" alt="Traefik" />
+    <img src="https://img.shields.io/badge/Cloudflare-DNS_API-orange?logo=cloudflare" alt="Cloudflare" />
+    <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker" />
+    <img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript" alt="TypeScript" />
+  </div>
+</div>
 
-First, run the development server:
+<hr />
+
+## ✨ Features
+
+- **🎨 Modern & Responsive Dashboard:** A sleek, user-friendly UI built with Next.js and TailwindCSS.
+- **🔄 Dynamic Traefik Configuration:** Manages reverse proxy routing seamlessly by modifying Traefik configuration files on the fly. No manual restarts required!
+- **☁️ Cloudflare API Integration:** Automatically fetches zones, resolves IP addresses, and sets up DNS records to keep your domains healthy.
+- **🔒 Secure Authentication:** Protected admin routes with a one-time setup mechanism for the master password.
+- **🐳 Docker Native:** Deploys easily with `docker-compose`, interacting directly with the Docker daemon via socket for advanced container management.
+- **⚡ Service State Management:** Visually monitor your targets, view connected backend IPs, and instantly sync or restart the underlying router.
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+Ensure you have the following installed on your host server:
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### 2. Installation
+Clone the repository and deploy the stack:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/alfannite/proxy-panel.git
+cd proxy-panel
+
+# Build and run the containers in detached mode
+docker compose up -d --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Initial Setup
+Once the containers are running:
+1. Navigate to `http://<your-server-ip>:3000` in your web browser.
+2. You will be redirected to `/setup-admin` to create your initial master password.
+3. Login via `/masukpanel` and start managing your proxies!
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ⚙️ How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**ProxyPanel** mounts the Traefik rules directory (`/opt/proxy/traefik-core/rules/http`) and the Docker socket (`/var/run/docker.sock`) into its container.
+When you create a new proxy rule through the dashboard:
+1. A valid Traefik YAML configuration file is generated.
+2. The file is saved directly to the mounted directory.
+3. Traefik's dynamic file provider automatically detects the change and applies the routing instantly.
 
-## Learn More
+## 📦 Stack Overview
 
-To learn more about Next.js, take a look at the following resources:
+| Technology      | Purpose                                                       |
+| --------------- | ------------------------------------------------------------- |
+| **Next.js 15**  | Frontend application framework and API routes                 |
+| **React**       | UI component building                                         |
+| **TailwindCSS** | Utility-first CSS framework for beautiful, rapid styling      |
+| **Prisma**      | ORM for managing local database configurations and settings   |
+| **Traefik**     | Underlying Edge Router handling actual reverse proxy traffic  |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠 Configuration (Environment Variables)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+In the `docker-compose.yml`, you can customize the application behavior:
 
-## Deploy on Vercel
+```yaml
+environment:
+  - NODE_ENV=production
+  - JWT_SECRET=super_secret_jwt_key_12345_change_this # Replace with a strong secret
+  - DATABASE_URL=file:/app/prisma/dev.db
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🤝 Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Contributions, issues, and feature requests are welcome! 
+Feel free to check [issues page](https://github.com/alfannite/proxy-panel/issues).
+
+## 📄 License
+
+This project is open-source and available under the [MIT License](LICENSE).
