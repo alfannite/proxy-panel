@@ -909,7 +909,8 @@ export default function Dashboard() {
 
       {/* Manage Service Modal */}
       <Modal isOpen={!!manageProxy} onClose={() => setManageProxy(null)} zIndex={60}>
-        <div className="solid-panel relative w-full w-[380px] max-w-[90vw] p-6 shadow-2xl">
+        {manageProxy && (
+          <div className="solid-panel relative w-full w-[380px] max-w-[90vw] p-6 shadow-2xl">
             <button
               onClick={() => setManageProxy(null)}
               className="absolute top-4 right-4 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
@@ -965,6 +966,7 @@ export default function Dashboard() {
               </button>
             </div>
           </div>
+        )}
       </Modal>
       {/* Global Tooltip */}
       {tooltipData.visible && (
@@ -1010,7 +1012,8 @@ export default function Dashboard() {
 
       {/* UI Messages Modal */}
       <Modal isOpen={!!uiMessage} onClose={() => setUiMessage(null)} zIndex={70}>
-        <div className="bg-surface-base border border-border-base rounded-2xl w-full w-[380px] max-w-[90vw] overflow-hidden shadow-2xl relative p-6 text-center">
+        {uiMessage && (
+          <div className="bg-surface-base border border-border-base rounded-2xl w-full w-[380px] max-w-[90vw] overflow-hidden shadow-2xl relative p-6 text-center">
             <div className={`mx-auto w-12 h-12 rounded-full mb-4 flex items-center justify-center ${
               uiMessage.type === 'success' ? 'bg-accent-sage/20 text-accent-sage' : 
               uiMessage.type === 'error' ? 'bg-accent-rust/20 text-accent-rust' : 
@@ -1029,6 +1032,7 @@ export default function Dashboard() {
               Okay
             </button>
           </div>
+        )}
       </Modal>
     </div>
   );
