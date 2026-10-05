@@ -518,21 +518,21 @@ export default function Dashboard() {
             </div>
           </header>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+          <div className="overflow-x-auto rounded-xl border border-border-base bg-surface-base">
+            <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
-                <tr className="border-b border-border-base text-text-muted text-[13px] uppercase tracking-wider">
-                  <th className="pb-4 font-medium pl-2">Service Name</th>
-                  <th className="pb-4 font-medium">Domain (Host)</th>
-                  <th className="pb-4 font-medium">Public IP</th>
-                  <th className="pb-4 font-medium">Target Backend</th>
-                  <th className="pb-4 font-medium text-center">Action</th>
+                <tr className="bg-surface-hover/80 text-text-main text-[12px] font-bold uppercase tracking-widest border-b border-border-base">
+                  <th className="py-4 pl-6 font-semibold w-1/4">Service Name</th>
+                  <th className="py-4 font-semibold w-1/4">Routing Domain</th>
+                  <th className="py-4 font-semibold">Public IP</th>
+                  <th className="py-4 font-semibold">Target Backend</th>
+                  <th className="py-4 font-semibold text-center pr-4">Action</th>
                 </tr>
               </thead>
-              <tbody className="text-[15px]">
+              <tbody className="text-[14px]">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-text-muted">
+                    <td colSpan={5} className="py-16 text-center text-text-muted">
                       <div className="flex items-center justify-center gap-3">
                         <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
                         Loading configuration...
@@ -541,7 +541,7 @@ export default function Dashboard() {
                   </tr>
                 ) : filteredProxies.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-text-muted">
+                    <td colSpan={5} className="py-16 text-center text-text-muted">
                       No proxies found. Click {" "}
                       <button
                         onClick={handleAddNewClick}
@@ -554,8 +554,8 @@ export default function Dashboard() {
                   </tr>
                 ) : (
                   filteredProxies.map((proxy, i) => (
-                    <tr key={i} className="border-b border-border-base hover:bg-surface-hover transition-colors duration-200 group">
-                      <td className="py-5 pl-2 font-medium text-text-main flex items-center">
+                    <tr key={i} className="border-b border-border-base hover:bg-surface-hover/50 transition-colors duration-200 group">
+                      <td className="py-5 pl-6 font-medium text-text-main flex items-center gap-3">
                         {renderStatusIcon(proxy.domain)}
                         <span className={proxy.status === 'stopped' ? 'line-through text-text-muted' : ''}>{proxy.serviceName}</span>
                       </td>
@@ -569,13 +569,13 @@ export default function Dashboard() {
                         {proxy.publicIp || "N/A"}
                       </td>
                       <td className="py-5 text-text-muted font-mono text-[13px]">{proxy.targetUrl}</td>
-                      <td className="py-5">
+                      <td className="py-5 pr-4">
                         <div className="flex justify-center">
                           <button 
                             onClick={() => setManageProxy(proxy)}
-                            className="btn-secondary py-1.5 px-3 text-[13px] inline-flex items-center"
+                            className="btn-secondary py-1.5 px-4 text-[13px] inline-flex items-center shadow-sm"
                           >
-                            <Settings2 className="w-4 h-4 mr-2" /> Manage
+                            <Settings2 className="w-4 h-4 mr-2 opacity-70" /> Manage
                           </button>
                         </div>
                       </td>
