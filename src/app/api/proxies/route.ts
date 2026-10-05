@@ -513,6 +513,30 @@ export async function PUT(req: Request) {
     const auth = await getCfAuthHeaders();
 
     if (auth && dnsIp) {
+      let activeDnsIp = dnsIp;
+
+      // If the IP is masked (e.g., 104.*.*.24), we need to fetch the real IP from Cloudflare
+      if (activeDnsIp.includes('*')) {
+        const searchDomain = oldDomain || fullDomain;
+        const targetZoneId = zoneId || (await findZoneForDomain(searchDomain, auth.headers))?.zoneId;
+        
+        if (targetZoneId) {
+          try {
+            const listRes = await fetch(
+              `https://api.cloudflare.com/client/v4/zones/${targetZoneId}/dns_records?name=${searchDomain}&type=A`,
+              { headers: auth.headers, cache: 'no-store' }
+            );
+            const listData = await listRes.json();
+            if (listData.success && listData.result && listData.result.length > 0) {
+              activeDnsIp = listData.result[0].content;
+              console.log(`[Cloudflare] Resolved masked IP ${dnsIp} to ${activeDnsIp}`);
+            }
+          } catch (e) {
+            console.error("[Cloudflare] Error resolving masked IP:", e);
+          }
+        }
+      }
+
       const domainChanged = oldDomain && oldDomain !== fullDomain;
 
       if (domainChanged) {
@@ -534,7 +558,7 @@ export async function PUT(req: Request) {
             zoneId, 
             subdomain || fullDomain.replace(`.${rootDomain}`, ''), 
             rootDomain || '', 
-            dnsIp, 
+            activeDnsIp, 
             proxied ?? false
           );
           if (dnsResult.success) {
@@ -546,7 +570,7 @@ export async function PUT(req: Request) {
           const zoneInfo = await findZoneForDomain(fullDomain, auth.headers);
           if (zoneInfo) {
             const sub = fullDomain === zoneInfo.zoneName ? '@' : fullDomain.replace(`.${zoneInfo.zoneName}`, '');
-            dnsResult = await addCloudflareDNSRecord(zoneInfo.zoneId, sub, zoneInfo.zoneName, dnsIp, proxied ?? false);
+            dnsResult = await addCloudflareDNSRecord(zoneInfo.zoneId, sub, zoneInfo.zoneName, activeDnsIp, proxied ?? false);
             if (dnsResult.success) dnsResult.action = "replaced";
           } else {
             dnsResult = { success: false, error: "Could not find zone for new domain" };
@@ -574,7 +598,7 @@ export async function PUT(req: Request) {
                 body: JSON.stringify({
                   type: "A",
                   name: fullDomain,
-                  content: dnsIp,
+                  content: activeDnsIp,
                   ttl: 1,
                   proxied: proxied ?? false
                 })
@@ -583,7 +607,7 @@ export async function PUT(req: Request) {
             const updateData = await updateRes.json();
             if (updateData.success) {
               dnsResult = { success: true, action: "updated" };
-              console.log(`[Cloudflare] DNS record updated: ${fullDomain} → ${dnsIp}`);
+              console.log(`[Cloudflare] DNS record updated: ${fullDomain} → ${activeDnsIp}`);
             } else {
               console.error(`[Cloudflare] Failed to update DNS: ${JSON.stringify(updateData.errors)}`);
               dnsResult = { success: false, error: updateData.errors?.[0]?.message || "Failed to update DNS" };
@@ -591,7 +615,7 @@ export async function PUT(req: Request) {
           } else {
             // Record not found, create new
             const sub = subdomain || (rootDomain ? fullDomain.replace(`.${rootDomain}`, '') : fullDomain);
-            dnsResult = await addCloudflareDNSRecord(targetZoneId, sub, rootDomain || '', dnsIp, proxied ?? false);
+            dnsResult = await addCloudflareDNSRecord(targetZoneId, sub, rootDomain || '', activeDnsIp, proxied ?? false);
             if (dnsResult.success) dnsResult.action = "created";
           }
         } else {

@@ -254,7 +254,7 @@ export default function Dashboard() {
       zoneId: zId,
       rootDomain: root,
       subdomain: sub,
-      dnsIp: "", // Left blank for user to fill if they want to update DNS
+      dnsIp: proxy.publicIp !== "N/A" ? proxy.publicIp : "",
       proxied: true
     });
     setIsEditMode(true);
