@@ -360,13 +360,13 @@ export function ProfileView({ onBack }: { onBack?: () => void }) {
                             value={cfToken}
                             onChange={(e) => setCfToken(e.target.value)}
                             placeholder="••••••••••••••••••••••••••••••••"
-                            className="input-field font-mono w-full pr-12"
+                            className="input-field font-mono w-full !pr-12"
                             autoComplete="new-password"
                           />
                           <button 
                             type="button" 
                             onClick={() => setShowToken(!showToken)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary-500 focus:outline-none"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary-500 focus:outline-none bg-[var(--theme-bg)] pl-2"
                             aria-label={showToken ? "Hide Token" : "Show Token"}
                           >
                             {showToken ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
