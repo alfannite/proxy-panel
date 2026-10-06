@@ -259,18 +259,6 @@ export default function ProfilePage() {
             >
               <Shield className="w-5 h-5" aria-hidden="true" /> Account Security
             </button>
-            <button 
-              onClick={() => { setActiveTab("appearance"); setMessage({ text: "", type: "" }); }}
-              aria-current={activeTab === "appearance" ? "page" : undefined}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                activeTab === "appearance" 
-                ? "bg-primary-500/10 text-primary-500 border border-primary-500/20 shadow-sm" 
-                : "text-text-muted hover:bg-surface-hover border border-transparent"
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-              Appearance
-            </button>
           </nav>
 
           {/* Main Content Area */}
@@ -532,52 +520,6 @@ export default function ProfilePage() {
                       </button>
                     </div>
                   </form>
-                </div>
-              </article>
-
-            ) : (
-
-              // Appearance Tab
-              <article className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-forwards">
-                <div className="mb-6 flex flex-col gap-2">
-                  <h2 className="text-2xl font-serif text-text-main">Appearance</h2>
-                  <p className="text-[14px] text-text-muted">Customize the dashboard's look and feel.</p>
-                </div>
-
-                <div className="solid-panel shadow-sm divide-y divide-border-base">
-                  <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6">
-                    <div className="md:w-1/3">
-                      <h3 className="text-[14px] font-bold text-text-main mb-1">Theme Preference</h3>
-                      <p className="text-[13px] text-text-muted leading-relaxed pr-4">Select your preferred color scheme. Dark mode provides a high-contrast nocturnal palette.</p>
-                    </div>
-                    <div className="md:w-2/3 md:pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      
-                      <button 
-                        onClick={() => document.documentElement.classList.remove('dark')}
-                        className="flex flex-col items-center gap-3 p-5 rounded-xl border border-border-base hover:border-primary-500/50 bg-white transition-all text-[#1E1B18] shadow-sm hover:shadow-md"
-                      >
-                        <div className="w-full h-28 bg-[#FAF8F6] border border-[#E8E3DD] rounded-lg p-3 flex flex-col gap-3" aria-hidden="true">
-                           <div className="w-1/2 h-2.5 bg-[#E8E3DD] rounded"></div>
-                           <div className="w-full h-8 bg-white border border-[#E8E3DD] rounded"></div>
-                           <div className="w-3/4 h-8 bg-white border border-[#E8E3DD] rounded"></div>
-                        </div>
-                        <span className="font-bold text-[14px]">Light Mode</span>
-                      </button>
-
-                      <button 
-                        onClick={() => document.documentElement.classList.add('dark')}
-                        className="flex flex-col items-center gap-3 p-5 rounded-xl border border-border-base hover:border-primary-500/50 bg-[#262320] transition-all text-[#F2EDE6] shadow-sm hover:shadow-md"
-                      >
-                        <div className="w-full h-28 bg-[#1C1A17] border border-[#3D3833] rounded-lg p-3 flex flex-col gap-3" aria-hidden="true">
-                           <div className="w-1/2 h-2.5 bg-[#3D3833] rounded"></div>
-                           <div className="w-full h-8 bg-[#262320] border border-[#3D3833] rounded"></div>
-                           <div className="w-3/4 h-8 bg-[#262320] border border-[#3D3833] rounded"></div>
-                        </div>
-                        <span className="font-bold text-[14px]">Dark Mode</span>
-                      </button>
-
-                    </div>
-                  </div>
                 </div>
               </article>
 

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/Modal";
+import { ThemeToggle } from "@/components/ui/curtain-theme-toggle";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -21,8 +22,7 @@ export default function Dashboard() {
   // Responsive Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Theme Toggle
-  const [isDark, setIsDark] = useState(true);
+  // General State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [tooltipData, setTooltipData] = useState<{ visible: boolean, x: number, y: number, title: React.ReactNode, content: React.ReactNode }>({ visible: false, x: 0, y: 0, title: '', content: '' });
   const [manageProxy, setManageProxy] = useState<any>(null);
@@ -55,9 +55,6 @@ export default function Dashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Check initial theme from document class
-    setIsDark(document.documentElement.classList.contains('dark'));
-    
     // Initial fetch
     fetchProxies();
     checkConnections();
@@ -70,16 +67,6 @@ export default function Dashboard() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove('dark');
-      setIsDark(false);
-    } else {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    }
-  };
 
   const fetchProxies = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -396,6 +383,11 @@ export default function Dashboard() {
             <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
             <p className="text-[11px] text-text-muted tracking-widest font-medium uppercase mt-0.5">By FanOps</p>
           </div>
+          
+          <div className="ml-auto hidden md:block">
+            <ThemeToggle variant="icon" />
+          </div>
+
           <button
             className="md:hidden ml-auto text-text-muted"
             onClick={() => setIsSidebarOpen(false)}
@@ -460,18 +452,20 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-12 w-full min-w-0">
-        {/* Mobile Header Bar */}
         <div className="md:hidden flex items-center justify-between mb-8 pb-4 border-b border-border-base">
           <div className="flex items-center gap-2">
             <Globe className="w-6 h-6 text-primary-500" />
             <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
           </div>
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 bg-surface-hover rounded-lg border border-border-base text-text-main"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-4">
+            <ThemeToggle variant="icon" />
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 bg-surface-hover rounded-lg border border-border-base text-text-main"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
