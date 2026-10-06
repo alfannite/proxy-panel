@@ -10,9 +10,9 @@
   --color-primary-600: #8b5cf6;
   --color-primary-700: #7c3aed;
 
-  --color-accent-sage: #8A9A7E;
-  --color-accent-rust: #B5593E;
-  --color-accent-sand: #D9B88F;
+  --color-accent-sage: #10b981;
+  --color-accent-rust: #f43f5e;
+  --color-accent-sand: #f59e0b;
 
   /* Theme agnostic variables mapping */
   --color-bg-base: var(--theme-bg);

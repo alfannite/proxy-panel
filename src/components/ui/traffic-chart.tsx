@@ -137,12 +137,12 @@ export function TrafficChart() {
         <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="absolute bottom-0 z-10">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="var(--color-primary-500)" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="var(--color-primary-500)" stopOpacity="0.0" />
             </linearGradient>
           </defs>
           <path d={pathD} fill="url(#chartGradient)" />
-          <path d={lineD} fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          <path d={lineD} fill="none" stroke="var(--color-primary-500)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
         </svg>
       </div>
     </div>

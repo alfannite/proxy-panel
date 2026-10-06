@@ -622,7 +622,7 @@ export default function Dashboard() {
                         <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Status Cloudflare</p>
                         <div>
                           {cfConnected ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-[#F38020]/10 text-[#F38020] border border-[#F38020]/20">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-[var(--color-primary-500)]/10 text-[var(--color-primary-500)] border border-[var(--color-primary-500)]/20">
                               <Cloud className="w-3 h-3" /> Proxied
                             </span>
                           ) : (
@@ -692,7 +692,7 @@ export default function Dashboard() {
                         </td>
                         <td className="py-5 px-4 whitespace-nowrap">
                           {cfConnected ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#F38020]/10 text-[#F38020] border border-[#F38020]/20 shadow-[0_0_10px_-2px_rgba(243,128,32,0.2)]">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[var(--color-primary-500)]/10 text-[var(--color-primary-500)] border border-[var(--color-primary-500)]/20 shadow-[0_0_10px_-2px_rgba(243,128,32,0.2)]">
                               <Cloud className="w-3 h-3" /> Proxied
                             </span>
                           ) : (
@@ -921,7 +921,7 @@ export default function Dashboard() {
                         <p className="text-[13px] font-medium text-text-main flex items-center gap-2">
                           Cloudflare Proxy Status
                           {formData.proxied ? (
-                            <span className="text-[#F6821F] flex items-center gap-1 text-[11px] font-bold"><Zap className="w-3 h-3 fill-current" /> Proxied</span>
+                            <span className="text-primary-500 flex items-center gap-1 text-[11px] font-bold"><Zap className="w-3 h-3 fill-current" /> Proxied</span>
                           ) : (
                             <span className="text-text-muted flex items-center gap-1 text-[11px] font-bold">DNS Only</span>
                           )}
@@ -937,7 +937,7 @@ export default function Dashboard() {
                           checked={formData.proxied}
                           onChange={(e) => setFormData({ ...formData, proxied: e.target.checked })}
                         />
-                        <div className="w-11 h-6 bg-surface-hover peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F6821F] border border-border-base"></div>
+                        <div className="w-11 h-6 bg-surface-hover peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-text-muted peer-checked:after:bg-white after:border-border-base after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-500 border border-border-base"></div>
                       </label>
                     </div>
                   </>
@@ -983,12 +983,11 @@ export default function Dashboard() {
           </div>
       </Modal>
 
-      {/* Error Action Modal */}
       <Modal isOpen={!!uiError} onClose={() => setUiError(null)} zIndex={60}>
-          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all z-10 border border-accent-rust/30 rounded-2xl">
+          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all z-10 border border-rose-500/30 rounded-2xl">
             <div className="flex items-center gap-3 mb-4 border-b border-border-base pb-4">
-              <div className="w-10 h-10 rounded-full bg-accent-rust/10 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-5 h-5 text-accent-rust" />
+              <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-rose-500" />
               </div>
               <h3 className="text-xl font-serif text-text-main">Action Blocked</h3>
             </div>
@@ -1004,7 +1003,7 @@ export default function Dashboard() {
               </button>
               <button 
                 onClick={() => { setUiError(null); router.push("/profile"); }} 
-                className="bg-accent-rust hover:bg-accent-rust/90 text-white font-medium rounded-lg text-[13px] py-2 px-4 transition-colors shadow-sm"
+                className="bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-[12px] text-[13px] py-2 px-4 transition-colors shadow-[0_4px_15px_rgba(244,63,94,0.3)] flex items-center justify-center gap-2"
               >
                 Go to Profile
               </button>
