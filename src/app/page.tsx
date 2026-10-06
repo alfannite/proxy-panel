@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [traefikConnected, setTraefikConnected] = useState(true); // Default true for mock
   const [isHealing, setIsHealing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
+  const [totalRequests, setTotalRequests] = useState<number | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -94,6 +95,19 @@ export default function Dashboard() {
       }
     } catch (e) {
       setCfConnected(false);
+    }
+
+    try {
+      const metricsRes = await fetch("/api/system/metrics");
+      if (metricsRes.ok) {
+        setTraefikConnected(true);
+        const data = await metricsRes.json();
+        setTotalRequests(data.requests);
+      } else {
+        setTraefikConnected(false);
+      }
+    } catch {
+      setTraefikConnected(false);
     }
   };
 
@@ -518,10 +532,10 @@ export default function Dashboard() {
         <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <article className="solid-card p-6 flex flex-col gap-4">
             <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
-              <Globe className="w-6 h-6 text-primary-500 animate-[spin_5s_linear_infinite]" />
+              <Globe className="w-6 h-6 text-primary-500" />
             </div>
             <div>
-              <p className="text-4xl font-serif text-text-main mb-1">{proxies.length}</p>
+              <p className="text-4xl font-serif text-text-main mb-1 tracking-tight">{proxies.length}</p>
               <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Active Domains</p>
             </div>
           </article>
@@ -533,8 +547,8 @@ export default function Dashboard() {
               <Activity className="w-7 h-7 text-primary-500 animate-[pulse_1.5s_ease-in-out_infinite] drop-shadow-[0_0_8px_rgba(201,125,60,0.6)]" />
             </div>
             <div className="relative z-10">
-              <p className={`text-4xl font-serif mb-1 ${traefikConnected ? 'text-text-main drop-shadow-sm' : 'text-accent-rust'}`}>
-                {traefikConnected ? "Stable" : "Err"}
+              <p className={`text-4xl font-serif mb-1 tracking-tight ${traefikConnected ? 'text-text-main drop-shadow-sm' : 'text-accent-rust'}`}>
+                {traefikConnected ? (totalRequests !== null ? totalRequests.toLocaleString() : "...") : "Err"}
               </p>
               <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Traffic Requests</p>
             </div>

@@ -24,6 +24,9 @@ services:
       --providers.file.watch=true
       --entrypoints.web.address=:80
       --entrypoints.websecure.address=:443
+      --metrics.prometheus=true
+      --metrics.prometheus.addEntryPointsLabels=true
+      --metrics.prometheus.addrouterslabels=true
       --certificatesresolvers.cloudflare.acme.dnschallenge=true
       --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
       --certificatesresolvers.cloudflare.acme.email=$${CF_EMAIL:-admin@example.com}
