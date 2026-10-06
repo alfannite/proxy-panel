@@ -306,13 +306,13 @@ export default function ProfilePage() {
                   <form onSubmit={handleSaveCloudflare} className="divide-y divide-border-base">
                     
                     {/* Test Result / Status Header */}
-                    <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-hover/30 rounded-t-2xl">
-                      <div>
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4 bg-surface-hover/30 rounded-t-2xl">
+                      <div className="md:w-1/3">
                         <h3 className="text-[14px] font-bold text-text-main">Connection Status</h3>
-                        <p className="text-[13px] text-text-muted mt-1">Current state of Cloudflare API link.</p>
+                        <p className="text-[13px] text-text-muted mt-1 pr-4">Current state of Cloudflare API link.</p>
                       </div>
-                      <div className="md:w-2/3 md:pl-8 flex justify-end md:justify-start">
-                        <div className={`px-4 py-3 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center gap-4 ${testResult ? 'bg-accent-sage/5 border-accent-sage/20' : 'bg-surface-base border-border-base'}`}>
+                      <div className="md:w-2/3 md:pl-8">
+                        <div className={`p-4 rounded-xl border ${testResult ? 'bg-accent-sage/5 border-accent-sage/20' : 'bg-surface-base border-border-base'}`}>
                            <div className="flex items-center gap-2">
                              <Link className={`w-4 h-4 ${testResult ? 'text-accent-sage' : 'text-text-muted'}`} />
                              <span className={`text-[13px] font-bold uppercase tracking-wider ${testResult ? 'text-accent-sage' : 'text-text-muted'}`}>
@@ -320,9 +320,15 @@ export default function ProfilePage() {
                              </span>
                            </div>
                            {testResult && (
-                             <div className="flex gap-4 text-[12px] sm:border-l border-border-base sm:pl-4 sm:ml-2">
-                               <span className="text-text-muted">Domains: <strong className="text-text-main">{testResult.totalZones}</strong></span>
-                               <span className="text-text-muted truncate max-w-[150px]">User: <strong className="text-text-main">{testResult.email}</strong></span>
+                             <div className="grid grid-cols-2 gap-4 mt-3 pt-3 border-t border-border-base/50">
+                               <div>
+                                 <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Domains Managed</p>
+                                 <p className="text-[14px] font-bold text-text-main">{testResult.totalZones}</p>
+                               </div>
+                               <div className="overflow-hidden">
+                                 <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Account User</p>
+                                 <p className="text-[13px] font-medium text-text-main truncate" title={testResult.email}>{testResult.email}</p>
+                               </div>
                              </div>
                            )}
                         </div>
