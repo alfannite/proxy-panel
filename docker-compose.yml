@@ -18,6 +18,7 @@ services:
       sh -c "
       if [ ! -f /opt/proxy/traefik-core/acme.json ]; then touch /opt/proxy/traefik-core/acme.json && chmod 600 /opt/proxy/traefik-core/acme.json; fi &&
       if [ -f /opt/proxy/traefik-core/.env.traefik ]; then export $$(cat /opt/proxy/traefik-core/.env.traefik | xargs); fi &&
+      mkdir -p /opt/proxy/traefik-core/rules/http &&
       traefik
       --api.insecure=true
       --providers.file.directory=/opt/proxy/traefik-core/rules
