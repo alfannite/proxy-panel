@@ -274,24 +274,21 @@ export default function ProfilePage() {
           </nav>
 
           {/* Main Content Area */}
-          <section className="flex-1 solid-panel p-8 overflow-hidden relative shadow-lg" aria-live="polite">
+          <section className="flex-1 relative w-full" aria-live="polite">
             {loading ? (
-              <div className="flex justify-center items-center h-40">
+              <div className="solid-panel p-8 flex justify-center items-center h-40 shadow-lg">
                 <Loader2 className="w-6 h-6 animate-spin text-primary-500" aria-label="Loading content..." />
               </div>
             ) : activeTab === "cloudflare" ? (
               
               // Cloudflare Tab
-              <article className="animate-in fade-in slide-in-from-top-8 duration-500 fill-mode-forwards">
-                <header className="flex items-center gap-4 mb-8 border-b border-border-base pb-6">
-                  <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
-                    <Cloud className="w-6 h-6 text-primary-500" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-serif text-text-main">Cloudflare Integration</h2>
-                    <p className="text-[13px] text-text-muted mt-1">Required for automated DNS A-Record creation.</p>
-                  </div>
-                </header>
+              <article className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-forwards">
+                <div className="mb-6 flex flex-col gap-2">
+                  <h2 className="text-2xl font-serif text-text-main flex items-center gap-3">
+                    Cloudflare Integration
+                  </h2>
+                  <p className="text-[14px] text-text-muted">Manage API credentials for automated DNS provisioning.</p>
+                </div>
 
                 {message.text && (
                   <div role="alert" className={`mb-6 p-4 rounded-xl text-[13px] font-medium border ${
@@ -305,148 +302,142 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                <form onSubmit={handleSaveCloudflare} className="space-y-6">
-                  <div>
-                    <label htmlFor="cfEmail" className="flex items-center gap-2 text-[13px] font-bold text-text-muted uppercase tracking-[0.1em] mb-2">
-                      Cloudflare Account Email
-                    </label>
-                    <input 
-                      id="cfEmail"
-                      type="email" 
-                      value={cfEmail}
-                      onChange={(e) => setCfEmail(e.target.value)}
-                      placeholder="admin@domain.com"
-                      className="input-field w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="cfToken" className="flex items-center gap-2 text-[13px] font-bold text-text-muted uppercase tracking-[0.1em] mb-2">
-                      Global API Key
-                      <div className="relative group">
-                        <button type="button" className="focus:outline-none" aria-label="More information about API Key">
-                          <Info className="w-4 h-4 cursor-help text-primary-500 hover:text-primary-600 transition-colors" />
-                        </button>
-                        
-                        {/* Popup Penjelasan Token Cloudflare */}
-                        <div role="tooltip" className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-80 bg-surface-base border border-border-base text-text-main text-[12px] p-4 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 normal-case tracking-normal font-normal">
-                          <h4 className="font-bold text-primary-500 mb-2 border-b border-border-base pb-2 flex items-center gap-2">
-                            <Info className="w-4 h-4" /> Cara Mendapatkan API Token
-                          </h4>
-                          <p className="text-text-muted mb-2">1. Login ke akun Cloudflare.</p>
-                          <p className="text-text-muted mb-2">2. Buka Profil Saya &gt; API Tokens.</p>
-                          <p className="text-text-muted mb-2">3. Buat Custom Token dengan izin:</p>
-                          <ul className="list-disc pl-5 mb-2 text-primary-600 font-medium space-y-1">
-                            <li>Zone &gt; DNS &gt; Edit</li>
-                            <li>Zone &gt; Zone &gt; Read</li>
-                          </ul>
-                          <p className="text-text-muted text-[11px] bg-primary-500/10 p-2 rounded">
-                            *Dengan izin ini, Panel bisa mengelola subdomain untuk semua domain di akun Anda secara otomatis.
-                          </p>
+                <div className="solid-panel shadow-sm">
+                  <form onSubmit={handleSaveCloudflare} className="divide-y divide-border-base">
+                    
+                    {/* Test Result / Status Header */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface-hover/30 rounded-t-2xl">
+                      <div>
+                        <h3 className="text-[14px] font-bold text-text-main">Connection Status</h3>
+                        <p className="text-[13px] text-text-muted mt-1">Current state of Cloudflare API link.</p>
+                      </div>
+                      <div className="md:w-2/3 md:pl-8 flex justify-end md:justify-start">
+                        <div className={`px-4 py-3 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center gap-4 ${testResult ? 'bg-accent-sage/5 border-accent-sage/20' : 'bg-surface-base border-border-base'}`}>
+                           <div className="flex items-center gap-2">
+                             <Link className={`w-4 h-4 ${testResult ? 'text-accent-sage' : 'text-text-muted'}`} />
+                             <span className={`text-[13px] font-bold uppercase tracking-wider ${testResult ? 'text-accent-sage' : 'text-text-muted'}`}>
+                               {testResult ? 'Connected' : 'Disconnected'}
+                             </span>
+                           </div>
+                           {testResult && (
+                             <div className="flex gap-4 text-[12px] sm:border-l border-border-base sm:pl-4 sm:ml-2">
+                               <span className="text-text-muted">Domains: <strong className="text-text-main">{testResult.totalZones}</strong></span>
+                               <span className="text-text-muted truncate max-w-[150px]">User: <strong className="text-text-main">{testResult.email}</strong></span>
+                             </div>
+                           )}
                         </div>
                       </div>
-                    </label>
-                    <div className="relative">
-                      <input 
-                        id="cfToken"
-                        type={showToken ? "text" : "password"} 
-                        value={cfToken}
-                        onChange={(e) => setCfToken(e.target.value)}
-                        placeholder="••••••••••••••••••••••••••••••••"
-                        className="input-field font-mono w-full pr-12"
-                        autoComplete="new-password"
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowToken(!showToken)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary-500 focus:outline-none p-1 rounded-md"
-                        aria-label={showToken ? "Hide API Token" : "Show API Token"}
-                      >
-                        {showToken ? (
-                          <EyeOff className="w-5 h-5" aria-hidden="true" />
-                        ) : (
-                          <Eye className="w-5 h-5" aria-hidden="true" />
-                        )}
-                      </button>
                     </div>
-                  </div>
 
-                  <div className="pt-4 flex flex-col md:flex-row flex-wrap gap-3">
-                    <button 
-                      type="button"
-                      onClick={handleTestConnection}
-                      disabled={testing}
-                      className="btn-secondary w-full md:w-auto"
-                    >
-                      {testing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Zap className="w-4 h-4" /> Test Connection</>}
-                    </button>
-                    <button 
-                      type="submit" 
-                      disabled={saving || !cfToken}
-                      className="btn-primary w-full md:w-auto"
-                    >
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Save className="w-4 h-4" /> Save Credentials</>}
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setShowPasswordModal(true)}
-                      className="btn-secondary w-full md:w-auto text-primary-500 hover:border-primary-500 hover:text-primary-600"
-                    >
-                      <Eye className="w-4 h-4" /> Preview Token
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={handleClearConnection}
-                      disabled={saving}
-                      className="btn-secondary w-full md:w-auto text-accent-rust hover:border-accent-rust hover:text-accent-rust"
-                    >
-                      Clear Connection
-                    </button>
-                  </div>
+                    {/* Email Row */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/3">
+                        <label htmlFor="cfEmail" className="text-[14px] font-bold text-text-main block mb-1">Account Email</label>
+                        <p className="text-[13px] text-text-muted leading-relaxed pr-4">The primary email address associated with your Cloudflare dashboard.</p>
+                      </div>
+                      <div className="md:w-2/3 md:pl-8">
+                        <input 
+                          id="cfEmail"
+                          type="email" 
+                          value={cfEmail}
+                          onChange={(e) => setCfEmail(e.target.value)}
+                          placeholder="admin@domain.com"
+                          className="input-field w-full max-w-md"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* API Token Row */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/3">
+                        <label htmlFor="cfToken" className="text-[14px] font-bold text-text-main block mb-1 flex items-center gap-2">
+                          Global API Key 
+                          <div className="relative group inline-block">
+                            <Info className="w-4 h-4 cursor-help text-primary-500" />
+                            <div className="absolute left-0 bottom-full mb-2 w-64 md:w-72 bg-surface-base border border-border-base text-[12px] p-4 rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 normal-case font-normal">
+                              <h4 className="font-bold text-primary-500 mb-2 border-b border-border-base pb-2">API Token Setup</h4>
+                              <p className="text-text-muted mb-2">Create a token with these permissions in Cloudflare:</p>
+                              <ul className="list-disc pl-5 text-text-main space-y-1 mb-2">
+                                <li>Zone &gt; DNS &gt; Edit</li>
+                                <li>Zone &gt; Zone &gt; Read</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </label>
+                        <p className="text-[13px] text-text-muted leading-relaxed pr-4">Used to automatically manage DNS records when deploying proxies.</p>
+                      </div>
+                      <div className="md:w-2/3 md:pl-8 relative max-w-md">
+                        <div className="relative">
+                          <input 
+                            id="cfToken"
+                            type={showToken ? "text" : "password"} 
+                            value={cfToken}
+                            onChange={(e) => setCfToken(e.target.value)}
+                            placeholder="••••••••••••••••••••••••••••••••"
+                            className="input-field font-mono w-full pr-12"
+                            autoComplete="new-password"
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowToken(!showToken)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary-500 focus:outline-none"
+                            aria-label={showToken ? "Hide Token" : "Show Token"}
+                          >
+                            {showToken ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
 
-                  {/* Test Result Card */}
-                  <div className={`mt-6 p-5 rounded-xl border ${testResult ? 'bg-accent-sage/5 border-accent-sage/20' : 'bg-accent-rust/5 border-accent-rust/20'}`}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <Link className={`w-4 h-4 ${testResult ? 'text-accent-sage' : 'text-accent-rust'}`} />
-                      <span className={`text-[13px] font-bold uppercase tracking-wider ${testResult ? 'text-accent-sage' : 'text-accent-rust'}`}>
-                        {testResult ? 'Connected' : 'Disconnected'}
-                      </span>
+                    {/* Form Actions */}
+                    <div className="p-6 md:p-8 bg-surface-hover/30 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-2xl">
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button 
+                          type="button"
+                          onClick={() => setShowPasswordModal(true)}
+                          className="btn-secondary text-[13px] text-text-muted hover:text-text-main w-full sm:w-auto"
+                        >
+                          <Eye className="w-4 h-4 mr-1.5 inline-block" /> Preview
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={handleClearConnection}
+                          disabled={saving}
+                          className="btn-secondary text-[13px] text-accent-rust hover:border-accent-rust/30 hover:bg-accent-rust/5 w-full sm:w-auto"
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3 w-full sm:w-auto">
+                        <button 
+                          type="button"
+                          onClick={handleTestConnection}
+                          disabled={testing}
+                          className="btn-secondary w-full sm:w-auto"
+                        >
+                          {testing ? <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" /> : <Zap className="w-4 h-4 mr-2 inline-block" />} Test
+                        </button>
+                        <button 
+                          type="submit" 
+                          disabled={saving || !cfToken}
+                          className="btn-primary w-full sm:w-auto"
+                        >
+                          {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2 inline-block" /> : <Save className="w-4 h-4 mr-2 inline-block" />} Save
+                        </button>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[13px]">
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Account Email</span>
-                        <span className={`font-medium ${testResult ? 'text-text-main' : 'text-text-muted'}`}>{testResult ? testResult.email : 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Account Name</span>
-                        <span className={`font-medium ${testResult ? 'text-text-main' : 'text-text-muted'}`}>{testResult ? testResult.name : 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Auth Method</span>
-                        <span className={`font-medium ${testResult ? 'text-primary-500' : 'text-text-muted'}`}>{testResult ? testResult.authMethod : 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-text-muted">Total Domains</span>
-                        <span className={`font-bold ${testResult ? 'text-text-main' : 'text-text-muted'}`}>{testResult ? testResult.totalZones : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-                </form>
+                  </form>
+                </div>
               </article>
 
             ) : activeTab === "security" ? (
 
               // Security Tab
-              <article className="animate-in fade-in slide-in-from-top-8 duration-500 fill-mode-forwards">
-                <header className="flex items-center gap-4 mb-8 border-b border-border-base pb-6">
-                  <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
-                    <Lock className="w-6 h-6 text-primary-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-serif text-text-main">Change Password</h2>
-                    <p className="text-[13px] text-text-muted mt-1">Update your master administrator password.</p>
-                  </div>
-                </header>
+              <article className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-forwards">
+                <div className="mb-6 flex flex-col gap-2">
+                  <h2 className="text-2xl font-serif text-text-main">Account Security</h2>
+                  <p className="text-[14px] text-text-muted">Manage master password and administrator settings.</p>
+                </div>
 
                 {message.text && (
                   <div className={`mb-6 p-4 rounded-xl text-[13px] font-medium border flex items-center gap-3 ${
@@ -459,110 +450,124 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                <div className="p-6 bg-surface-hover border border-border-base rounded-xl mb-6 flex items-center gap-4">
-                  <User className="w-10 h-10 text-text-muted p-2 bg-bg-base rounded-lg border border-border-base" />
-                  <div>
-                    <p className="text-text-main font-medium">Administrator</p>
-                    <p className="text-[12px] text-text-muted">Role: ADMIN</p>
-                  </div>
+                <div className="solid-panel shadow-sm">
+                  <form onSubmit={handleChangePassword} className="divide-y divide-border-base">
+                    
+                    {/* Admin Profile Display */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4 bg-surface-hover/30 rounded-t-2xl">
+                       <div className="md:w-1/3">
+                          <h3 className="text-[14px] font-bold text-text-main">Admin Profile</h3>
+                          <p className="text-[13px] text-text-muted mt-1 pr-4">Active user session.</p>
+                       </div>
+                       <div className="md:w-2/3 md:pl-8">
+                         <div className="flex items-center gap-4">
+                           <User className="w-12 h-12 text-text-muted p-2.5 bg-bg-base rounded-xl border border-border-base" />
+                           <div>
+                             <p className="text-text-main font-bold">Administrator</p>
+                             <p className="text-[12px] text-text-muted bg-primary-500/10 text-primary-500 px-2 py-0.5 rounded-full inline-block mt-1 font-medium tracking-wider">ROLE: ADMIN</p>
+                           </div>
+                         </div>
+                       </div>
+                    </div>
+
+                    {/* Current Password Row */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/3">
+                        <label className="text-[14px] font-bold text-text-main block mb-1">Current Password</label>
+                        <p className="text-[13px] text-text-muted leading-relaxed pr-4">Enter your current master password to verify your identity.</p>
+                      </div>
+                      <div className="md:w-2/3 md:pl-8 max-w-md">
+                        <input 
+                          type="password" 
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Current password"
+                          className="input-field w-full"
+                          required
+                          autoComplete="new-password"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* New Password Row */}
+                    <div className="p-6 md:p-8 flex flex-col md:flex-row gap-4">
+                      <div className="md:w-1/3">
+                        <label className="text-[14px] font-bold text-text-main block mb-1">New Password</label>
+                        <p className="text-[13px] text-text-muted leading-relaxed pr-4">Must be at least 6 characters long.</p>
+                      </div>
+                      <div className="md:w-2/3 md:pl-8 max-w-md space-y-4">
+                        <input 
+                          type="password" 
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="New password"
+                          className="input-field w-full"
+                          required
+                          minLength={6}
+                          autoComplete="new-password"
+                        />
+                        <input 
+                          type="password" 
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm new password"
+                          className="input-field w-full"
+                          required
+                          minLength={6}
+                          autoComplete="new-password"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Form Actions */}
+                    <div className="p-6 md:p-8 bg-surface-hover/30 flex justify-end rounded-b-2xl">
+                      <button type="submit" disabled={saving} className="btn-primary w-full sm:w-auto">
+                        {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2 inline-block" /> : <Key className="w-4 h-4 mr-2 inline-block" />} Update Password
+                      </button>
+                    </div>
+                  </form>
                 </div>
-
-                <form onSubmit={handleChangePassword} className="space-y-6">
-                  <div>
-                    <label className="text-[13px] font-bold text-text-muted uppercase tracking-[0.1em] mb-2 block">Current Password</label>
-                    <input 
-                      type="password" 
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="Enter current password"
-                      className="input-field"
-                      required
-                      autoComplete="new-password"
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="text-[13px] font-bold text-text-muted uppercase tracking-[0.1em] mb-2 block">New Password</label>
-                      <input 
-                        type="password" 
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Minimum 6 characters"
-                        className="input-field"
-                        required
-                        minLength={6}
-                        autoComplete="new-password"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[13px] font-bold text-text-muted uppercase tracking-[0.1em] mb-2 block">Confirm Password</label>
-                      <input 
-                        type="password" 
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Repeat new password"
-                        className="input-field"
-                        required
-                        minLength={6}
-                        autoComplete="new-password"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <button type="submit" disabled={saving} className="btn-primary w-full md:w-auto">
-                      {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Key className="w-4 h-4" /> Update Password</>}
-                    </button>
-                  </div>
-                </form>
               </article>
 
             ) : (
 
               // Appearance Tab
-              <article className="animate-in fade-in slide-in-from-top-8 duration-500 fill-mode-forwards">
-                <header className="flex items-center gap-4 mb-8 border-b border-border-base pb-6">
-                  <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-500" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-serif text-text-main">Appearance Settings</h2>
-                    <p className="text-[13px] text-text-muted mt-1">Customize the look and feel of your panel.</p>
-                  </div>
-                </header>
+              <article className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-forwards">
+                <div className="mb-6 flex flex-col gap-2">
+                  <h2 className="text-2xl font-serif text-text-main">Appearance</h2>
+                  <p className="text-[14px] text-text-muted">Customize the dashboard's look and feel.</p>
+                </div>
 
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-[14px] font-bold text-text-main mb-4">Theme Preference</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="solid-panel shadow-sm divide-y divide-border-base">
+                  <div className="p-6 md:p-8 flex flex-col md:flex-row gap-6">
+                    <div className="md:w-1/3">
+                      <h3 className="text-[14px] font-bold text-text-main mb-1">Theme Preference</h3>
+                      <p className="text-[13px] text-text-muted leading-relaxed pr-4">Select your preferred color scheme. Dark mode provides a high-contrast nocturnal palette.</p>
+                    </div>
+                    <div className="md:w-2/3 md:pl-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
                       
-                      {/* Light Mode Button */}
                       <button 
                         onClick={() => document.documentElement.classList.remove('dark')}
-                        className="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-border-base hover:border-primary-500/50 bg-white transition-all text-[#1E1B18]"
-                        aria-label="Enable Light Mode"
+                        className="flex flex-col items-center gap-3 p-5 rounded-xl border border-border-base hover:border-primary-500/50 bg-white transition-all text-[#1E1B18] shadow-sm hover:shadow-md"
                       >
-                        <div className="w-full h-24 bg-[#FAF8F6] border border-[#E8E3DD] rounded-lg p-2 flex flex-col gap-2 shadow-inner" aria-hidden="true">
-                           <div className="w-1/2 h-2 bg-[#E8E3DD] rounded"></div>
+                        <div className="w-full h-28 bg-[#FAF8F6] border border-[#E8E3DD] rounded-lg p-3 flex flex-col gap-3" aria-hidden="true">
+                           <div className="w-1/2 h-2.5 bg-[#E8E3DD] rounded"></div>
                            <div className="w-full h-8 bg-white border border-[#E8E3DD] rounded"></div>
                            <div className="w-3/4 h-8 bg-white border border-[#E8E3DD] rounded"></div>
                         </div>
-                        <span className="font-medium">Light Mode (Dove Warm)</span>
+                        <span className="font-bold text-[14px]">Light Mode</span>
                       </button>
 
-                      {/* Dark Mode Button */}
                       <button 
                         onClick={() => document.documentElement.classList.add('dark')}
-                        className="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-border-base hover:border-primary-500/50 bg-[#262320] transition-all text-[#F2EDE6]"
-                        aria-label="Enable Dark Mode"
+                        className="flex flex-col items-center gap-3 p-5 rounded-xl border border-border-base hover:border-primary-500/50 bg-[#262320] transition-all text-[#F2EDE6] shadow-sm hover:shadow-md"
                       >
-                        <div className="w-full h-24 bg-[#1C1A17] border border-[#3D3833] rounded-lg p-2 flex flex-col gap-2 shadow-inner" aria-hidden="true">
-                           <div className="w-1/2 h-2 bg-[#3D3833] rounded"></div>
+                        <div className="w-full h-28 bg-[#1C1A17] border border-[#3D3833] rounded-lg p-3 flex flex-col gap-3" aria-hidden="true">
+                           <div className="w-1/2 h-2.5 bg-[#3D3833] rounded"></div>
                            <div className="w-full h-8 bg-[#262320] border border-[#3D3833] rounded"></div>
                            <div className="w-3/4 h-8 bg-[#262320] border border-[#3D3833] rounded"></div>
                         </div>
-                        <span className="font-medium">Dark Mode (Midnight)</span>
+                        <span className="font-bold text-[14px]">Dark Mode</span>
                       </button>
 
                     </div>
