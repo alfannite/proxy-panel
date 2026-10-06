@@ -326,9 +326,9 @@ export function ThemeToggle({
     return (
       <>
         <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
-        <button
-          onClick={toggle as any}
-          className={`flex items-center w-full rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200 group ${isCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-3'}`}
+        <div
+          className={`flex items-center w-full rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200 group ${isCollapsed ? 'justify-center p-3 cursor-pointer' : 'justify-between px-4 py-3'}`}
+          onClick={isCollapsed ? (toggle as any) : undefined}
           aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
         >
           <div className="flex items-center gap-3">
@@ -336,19 +336,26 @@ export function ThemeToggle({
             {!isCollapsed && <span>Theme Mode</span>}
           </div>
           {!isCollapsed && (
-            <div 
-              className="relative flex items-center w-[36px] h-[20px] rounded-full transition-colors duration-300 border border-border-base shadow-inner"
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                (toggle as any)(e);
+              }}
+              className="relative flex items-center w-[36px] h-[20px] rounded-full transition-colors duration-300 border border-border-base shadow-inner cursor-pointer hover:ring-2 hover:ring-primary-500/30"
               style={{ background: theme === 'dark' ? 'var(--color-primary-500)' : 'var(--theme-surface)' }}
             >
                <div 
-                 className="absolute w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-transform duration-300 flex items-center justify-center"
-                 style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
+                 className="absolute w-[14px] h-[14px] rounded-full shadow-sm transition-transform duration-300 flex items-center justify-center text-text-main"
+                 style={{ 
+                   background: theme === 'dark' ? 'white' : 'var(--theme-surface)',
+                   transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' 
+                 }}
                >
                   {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
                </div>
-            </div>
+            </button>
           )}
-        </button>
+        </div>
       </>
     );
   }

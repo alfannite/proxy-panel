@@ -374,19 +374,21 @@ export default function Dashboard() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface-base shadow-[var(--shadow-neumorphic)] border-r border-border-base p-6 flex flex-col gap-8 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 ${isSidebarCollapsed ? 'w-24 p-4 items-center' : 'w-72 p-6'} bg-surface-base shadow-[var(--shadow-neumorphic)] border-r border-border-base flex flex-col gap-8 transform transition-all duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
 
-        <div className="flex items-center gap-3 px-2 mt-2 md:mt-0">
-          <div className="w-10 h-10 rounded-xl bg-surface-hover border border-border-base flex items-center justify-center shadow-sm">
+        <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center w-full' : 'gap-3 px-2'} mt-2 md:mt-0 relative`}>
+          <div className="w-10 h-10 shrink-0 rounded-xl bg-surface-hover border border-border-base flex items-center justify-center shadow-sm">
             <Globe className="w-6 h-6 text-primary-500" />
           </div>
-          <div>
-            <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
-            <p className="text-[11px] text-text-muted tracking-widest font-medium uppercase mt-0.5">By FanOps</p>
-          </div>
+          {!isSidebarCollapsed && (
+            <div className="overflow-hidden whitespace-nowrap transition-all duration-300">
+              <h1 className="text-xl font-serif text-text-main font-bold">ProxyPanel</h1>
+              <p className="text-[11px] text-text-muted tracking-widest font-medium uppercase mt-0.5">By FanOps</p>
+            </div>
+          )}
           
           <button
-            className="md:hidden ml-auto text-text-muted"
+            className="md:hidden ml-auto text-text-muted absolute right-0"
             onClick={() => setIsSidebarOpen(false)}
           >
             <X className="w-5 h-5" />
