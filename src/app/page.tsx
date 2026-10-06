@@ -121,7 +121,12 @@ export default function Dashboard() {
       if (result.success) {
         setZones(result.data);
         if (result.data.length > 0) {
-          setFormData(prev => ({ ...prev, zoneId: result.data[0].id, rootDomain: result.data[0].name }));
+          setFormData(prev => {
+            if (!prev.zoneId) {
+              return { ...prev, zoneId: result.data[0].id, rootDomain: result.data[0].name };
+            }
+            return prev;
+          });
         }
       }
     } catch (e) {
@@ -755,7 +760,7 @@ export default function Dashboard() {
 
       {/* Add New Proxy Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} zIndex={50}>
-        <div className="solid-panel relative w-full w-[500px] max-w-[90vw] p-6 md:p-8 shadow-2xl">
+        <div className="solid-panel relative w-full w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"

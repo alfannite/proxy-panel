@@ -521,7 +521,7 @@ export function ProfileView({ onBack }: { onBack?: () => void }) {
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setShowPasswordModal(false); setRevealedCreds(null); setPreviewPassword(""); }} />
-          <div className="solid-panel relative w-full max-w-sm p-6 shadow-2xl transform transition-all z-10">
+          <div className="solid-panel relative w-full max-w-[95vw] sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-2xl transform transition-all z-10">
             <h3 className="text-lg font-serif text-text-main mb-4 border-b border-border-base pb-3">Admin Verification</h3>
             
             {revealedCreds ? (
