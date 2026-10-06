@@ -249,15 +249,48 @@ export async function GET() {
       };
     });
 
+    // Optimize Cloudflare lookups by caching zone records if CF is connected
+    const auth = await getCfAuthHeaders();
+    let cfRecordsCache: any[] = [];
+    
+    if (auth) {
+      try {
+        // Fetch all zones to get records
+        const zonesRes = await fetch("https://api.cloudflare.com/client/v4/zones?per_page=50&status=active", { headers: auth.headers });
+        const zonesData = await zonesRes.json();
+        if (zonesData.success && zonesData.result) {
+          // For simplicity, just fetch records from the first few zones if they exist
+          for (const zone of zonesData.result.slice(0, 3)) {
+            const recRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${zone.id}/dns_records?type=A&per_page=100`, { headers: auth.headers });
+            const recData = await recRes.json();
+            if (recData.success && recData.result) {
+              cfRecordsCache = [...cfRecordsCache, ...recData.result];
+            }
+          }
+        }
+      } catch (e) {
+        // Ignore CF fetch errors
+      }
+    }
+
     const proxiesWithDNS = await Promise.all(proxies.map(async (proxy) => {
       let publicIp = "N/A";
+      let realIp = "";
+      
       if (proxy.domain !== "Unknown") {
+        // First try to find it in Cloudflare Cache (REAL IP)
+        const cfRecord = cfRecordsCache.find(r => r.name === proxy.domain);
+        if (cfRecord) {
+          realIp = cfRecord.content; // This is the actual IP they entered
+        }
+
+        // Then do normal DNS resolve for the masked IP
         try {
           const records = await dns.resolve4(proxy.domain);
           if (records && records.length > 0) {
             const parts = records[0].split('.');
-            if (parts.length === 4) {
-              publicIp = `${parts[0]}.*.*.${parts[3]}`;
+            if (parts.length === 4 && (records[0].startsWith('104.') || records[0].startsWith('172.'))) {
+              publicIp = `${parts[0]}.*.*.${parts[3]}`; // Masked CF IP
             } else {
               publicIp = records[0];
             }
@@ -266,7 +299,8 @@ export async function GET() {
           // ignore dns errors
         }
       }
-      return { ...proxy, publicIp };
+      
+      return { ...proxy, publicIp, realIp: realIp || publicIp };
     }));
 
     return NextResponse.json({ success: true, data: proxiesWithDNS });

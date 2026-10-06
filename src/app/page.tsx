@@ -254,7 +254,7 @@ export default function Dashboard() {
       zoneId: zId,
       rootDomain: root,
       subdomain: sub,
-      dnsIp: proxy.publicIp !== "N/A" ? proxy.publicIp : "",
+      dnsIp: proxy.realIp && proxy.realIp !== "N/A" ? proxy.realIp : (proxy.publicIp !== "N/A" ? proxy.publicIp : ""),
       proxied: true
     });
     setIsEditMode(true);
@@ -606,7 +606,13 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Public IP</p>
-                        <p className="font-mono text-[13px] text-text-main/80">{proxy.publicIp || "N/A"}</p>
+                        {proxy.publicIp === "N/A" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Pending DNS
+                          </span>
+                        ) : (
+                          <p className="font-mono text-[13px] text-text-main/80">{proxy.publicIp}</p>
+                        )}
                       </div>
                       <div className="sm:col-span-2">
                         <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mb-1">Target Backend</p>
@@ -668,7 +674,13 @@ export default function Dashboard() {
                           )}
                         </td>
                         <td className="py-5 px-4 font-mono text-[13px] text-text-main/70 whitespace-nowrap">
-                          {proxy.publicIp || "N/A"}
+                          {proxy.publicIp === "N/A" ? (
+                            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 shadow-sm">
+                              <Loader2 className="w-3 h-3 animate-spin" /> Pending DNS
+                            </span>
+                          ) : (
+                            proxy.publicIp
+                          )}
                         </td>
                         <td className="py-5 px-4 text-text-main/70 font-mono text-[13px] break-all min-w-[180px]">
                           {proxy.targetUrl}
