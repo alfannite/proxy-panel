@@ -156,11 +156,9 @@ export function ThemeToggle({
   const barHeight = explicitBarHeight ?? (isAppBar ? 60 : 44);
 
   const [theme, setTheme]     = useState<Theme>(defaultTheme);
-  const [phase, setPhase]     = useState<CurtainPhase>("idle");
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const curtainColorRef       = useRef<string>("");
   const t                     = TOKENS[theme];
 
   // Sync with global Tailwind dark class on mount
@@ -177,27 +175,18 @@ export function ThemeToggle({
   }, []);
 
   const toggle = useCallback(() => {
-    if (phase !== "idle") return;
     const next: Theme = theme === "light" ? "dark" : "light";
-    curtainColorRef.current = TOKENS[next].pageBg;
-    setPhase("falling");
-
-    setTimeout(() => {
-      setTheme(next);
-      onThemeChange?.(next);
-      
-      if (typeof document !== "undefined") {
-        if (next === "dark") {
-          document.documentElement.classList.add("dark");
-        } else {
-          document.documentElement.classList.remove("dark");
-        }
+    setTheme(next);
+    onThemeChange?.(next);
+    
+    if (typeof document !== "undefined") {
+      if (next === "dark") {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
       }
-
-      setPhase("rising");
-      setTimeout(() => setPhase("idle"), duration + 60);
-    }, duration);
-  }, [phase, theme, duration, onThemeChange]);
+    }
+  }, [theme, onThemeChange]);
 
   // ── Derived styles ──────────────────────────────────────────────────────────
 
@@ -251,26 +240,6 @@ export function ThemeToggle({
     flexShrink: 0,
   };
 
-  const curtainStyle: CSSProperties = {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    width: "300vmax",
-    height: "300vmax",
-    borderRadius: "50%",
-    background: curtainColorRef.current,
-    transform: phase === "falling" ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0)",
-    transition:
-      phase !== "idle" ? `transform ${duration}ms ${EASING}` : "none",
-    zIndex: 9997,
-    pointerEvents: "none",
-  };
-
-  const curtainElement = mounted ? createPortal(
-    <div aria-hidden="true" style={curtainStyle} />,
-    document.body
-  ) : null;
-
   const appBarSectionStyle: CSSProperties = {
     display: "flex",
     alignItems: "center",
@@ -279,29 +248,23 @@ export function ThemeToggle({
 
   if (isIcon) {
     return (
-      <>
-        {curtainElement}
-        <button
-          style={btnStyle}
-          onClick={toggle}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => { setHovered(false); setPressed(false); }}
-          onMouseDown={() => setPressed(true)}
-          onMouseUp={() => setPressed(false)}
-          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-          aria-pressed={theme === "dark"}
-        >
-          {theme === "light" ? <MoonIcon /> : <SunIcon />}
-        </button>
-      </>
+      <button
+        style={btnStyle}
+        onClick={toggle}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => { setHovered(false); setPressed(false); }}
+        onMouseDown={() => setPressed(true)}
+        onMouseUp={() => setPressed(false)}
+        aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+        aria-pressed={theme === "dark"}
+      >
+        {theme === "light" ? <MoonIcon /> : <SunIcon />}
+      </button>
     );
   }
 
   return (
     <div style={pageStyle}>
-      {/* Curtain overlay */}
-      {curtainElement}
-
       {/* Fixed top bar */}
       <div style={barStyle}>
         
