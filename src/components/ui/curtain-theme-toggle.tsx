@@ -174,18 +174,50 @@ export function ThemeToggle({
     }
   }, []);
 
-  const toggle = useCallback(() => {
+  const toggle = useCallback((e: React.MouseEvent) => {
     const next: Theme = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    onThemeChange?.(next);
     
-    if (typeof document !== "undefined") {
-      if (next === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
+    // Fallback if View Transitions API is not supported
+    if (typeof document === "undefined" || !(document as any).startViewTransition) {
+      setTheme(next);
+      onThemeChange?.(next);
+      if (typeof document !== "undefined") {
+        if (next === "dark") document.documentElement.classList.add("dark");
+        else document.documentElement.classList.remove("dark");
       }
+      return;
     }
+
+    const x = e.clientX;
+    const y = e.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = (document as any).startViewTransition(() => {
+      setTheme(next);
+      onThemeChange?.(next);
+      if (next === "dark") document.documentElement.classList.add("dark");
+      else document.documentElement.classList.remove("dark");
+    });
+
+    transition.ready.then(() => {
+      const clipPath = [
+        `circle(0px at ${x}px ${y}px)`,
+        `circle(${endRadius}px at ${x}px ${y}px)`,
+      ];
+      document.documentElement.animate(
+        {
+          clipPath: next === "dark" ? clipPath : [...clipPath].reverse(),
+        },
+        {
+          duration: 600,
+          easing: "ease-in-out",
+          pseudoElement: next === "dark" ? "::view-transition-new(root)" : "::view-transition-old(root)",
+        }
+      );
+    });
   }, [theme, onThemeChange]);
 
   // ── Derived styles ──────────────────────────────────────────────────────────
@@ -246,25 +278,43 @@ export function ThemeToggle({
     gap: "12px",
   };
 
+  const globalStyles = `
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+    ::view-transition-old(root) {
+      z-index: 1;
+    }
+    ::view-transition-new(root) {
+      z-index: 2;
+    }
+  `;
+
   if (isIcon) {
     return (
-      <button
-        style={btnStyle}
-        onClick={toggle}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => { setHovered(false); setPressed(false); }}
-        onMouseDown={() => setPressed(true)}
-        onMouseUp={() => setPressed(false)}
-        aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
-        aria-pressed={theme === "dark"}
-      >
-        {theme === "light" ? <MoonIcon /> : <SunIcon />}
-      </button>
+      <>
+        <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
+        <button
+          style={btnStyle}
+          onClick={toggle as any}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => { setHovered(false); setPressed(false); }}
+          onMouseDown={() => setPressed(true)}
+          onMouseUp={() => setPressed(false)}
+          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          aria-pressed={theme === "dark"}
+        >
+          {theme === "light" ? <MoonIcon /> : <SunIcon />}
+        </button>
+      </>
     );
   }
 
   return (
     <div style={pageStyle}>
+      <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
       {/* Fixed top bar */}
       <div style={barStyle}>
         
@@ -343,7 +393,7 @@ export function ThemeToggle({
             {/* Toggle Button in AppBar */}
             <button
               style={btnStyle}
-              onClick={toggle}
+              onClick={toggle as any}
               onMouseEnter={() => setHovered(true)}
               onMouseLeave={() => { setHovered(false); setPressed(false); }}
               onMouseDown={() => setPressed(true)}
@@ -360,7 +410,7 @@ export function ThemeToggle({
           // Default layout: just the button hanging out
           <button
             style={btnStyle}
-            onClick={toggle}
+            onClick={toggle as any}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => { setHovered(false); setPressed(false); }}
             onMouseDown={() => setPressed(true)}
