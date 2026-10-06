@@ -5,7 +5,7 @@ import {
   Globe, Activity, Plus, Server, LayoutDashboard,
   Search, Shield, X, ExternalLink, LogOut, User, Info,
   Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2,
-  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle, Network, Cloud
+  Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle, Network, Cloud, Palette
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/Modal";
@@ -384,10 +384,6 @@ export default function Dashboard() {
             <p className="text-[11px] text-text-muted tracking-widest font-medium uppercase mt-0.5">By FanOps</p>
           </div>
           
-          <div className="ml-auto hidden md:block">
-            <ThemeToggle variant="icon" />
-          </div>
-
           <button
             className="md:hidden ml-auto text-text-muted"
             onClick={() => setIsSidebarOpen(false)}
@@ -404,6 +400,16 @@ export default function Dashboard() {
 
 
           <div className="my-2 border-t border-border-base w-full"></div>
+
+          <div className="flex items-center justify-between px-4 py-2 mt-2">
+            <div className="flex items-center gap-3 text-text-muted font-medium">
+              <Palette className="w-5 h-5" />
+              <span>Theme Mode</span>
+            </div>
+            <div className="scale-90">
+              <ThemeToggle variant="icon" />
+            </div>
+          </div>
 
           <button onClick={() => router.push("/profile")} className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200">
             <User className="w-5 h-5 transition-colors" />
