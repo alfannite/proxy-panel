@@ -32,4 +32,4 @@ COPY --from=builder /app/next.config.ts ./
 
 EXPOSE 3000
 
-CMD touch prisma/dev.db && npx prisma@5.22.0 db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss && npm run start
+CMD touch prisma/dev.db && npx prisma@5.22.0 db push --schema=prisma/schema.prisma --skip-generate --accept-data-loss && (node traffic-collector.js & npm run start)

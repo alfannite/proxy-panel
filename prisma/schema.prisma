@@ -33,3 +33,9 @@ model Setting {
   key   String @unique
   value String
 }
+
+model TrafficLog {
+  id        Int      @id @default(autoincrement())
+  timestamp DateTime @default(now())
+  requests  Int      // The number of requests in this interval
+}

@@ -37,7 +37,6 @@ export default function Dashboard() {
   const [traefikConnected, setTraefikConnected] = useState(true); // Default true for mock
   const [isHealing, setIsHealing] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
-  const [totalRequests, setTotalRequests] = useState<number | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -102,8 +101,6 @@ export default function Dashboard() {
       const metricsRes = await fetch("/api/system/metrics");
       if (metricsRes.ok) {
         setTraefikConnected(true);
-        const data = await metricsRes.json();
-        setTotalRequests(data.requests);
       } else {
         setTraefikConnected(false);
       }
@@ -542,7 +539,7 @@ export default function Dashboard() {
           </article>
           
           <div className="col-span-1 md:col-span-2 min-h-[160px] h-full">
-            <TrafficChart currentTotal={totalRequests} />
+            <TrafficChart />
           </div>
 
           <article className="solid-card p-6 flex flex-col gap-4 col-span-1">
