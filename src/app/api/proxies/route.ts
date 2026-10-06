@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import { jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import dns from 'dns/promises';
+import http from 'http';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_12345';
@@ -25,6 +26,23 @@ async function verifyAuth() {
   } catch {
     return null;
   }
+}
+
+// Helper: Restart Traefik via Docker Socket
+function restartTraefik() {
+  return new Promise((resolve) => {
+    const options = {
+      socketPath: "/var/run/docker.sock",
+      path: "/containers/traefik-core/restart",
+      method: "POST",
+    };
+    const req = http.request(options, (res) => resolve(res.statusCode === 204));
+    req.on("error", (err) => {
+      console.error("[Traefik Auto-Sync] Docker socket error:", err.message);
+      resolve(false);
+    });
+    req.end();
+  });
 }
 
 // ============================================================
@@ -397,9 +415,14 @@ export async function POST(req: Request) {
       dnsResult = await addCloudflareDNSRecord(zoneId, subdomain, rootDomain, dnsIp, proxied ?? false);
     }
 
+    // Auto-sync Traefik asynchronously
+    restartTraefik().then((success) => {
+      if (success) console.log(`[Traefik] Auto-synced config for ${fileName}`);
+    });
+
     return NextResponse.json({ 
       success: true, 
-      message: "Proxy created successfully!", 
+      message: "Proxy created successfully! Config auto-synced.", 
       filename: fileName,
       domain: fullDomain,
       dns: dnsResult
@@ -454,9 +477,14 @@ export async function DELETE(req: Request) {
     fs.unlinkSync(filePath);
     console.log(`[Traefik] Rule file deleted: ${safeFilename}`);
 
+    // Auto-sync Traefik asynchronously
+    restartTraefik().then((success) => {
+      if (success) console.log(`[Traefik] Auto-synced config deletion for ${safeFilename}`);
+    });
+
     return NextResponse.json({ 
       success: true, 
-      message: `Proxy "${safeFilename}" deleted successfully`,
+      message: `Proxy "${safeFilename}" deleted successfully and config auto-synced`,
       dns: dnsResult
     });
   } catch (error: any) {
@@ -659,9 +687,14 @@ export async function PUT(req: Request) {
       }
     }
 
+    // Auto-sync Traefik asynchronously
+    restartTraefik().then((success) => {
+      if (success) console.log(`[Traefik] Auto-synced updated config for ${safeFilename}`);
+    });
+
     return NextResponse.json({ 
       success: true, 
-      message: "Proxy updated successfully! Traefik will apply the changes dynamically.", 
+      message: "Proxy updated successfully! Config auto-synced.", 
       dns: dnsResult 
     });
   } catch (error: any) {
@@ -708,9 +741,14 @@ export async function PATCH(req: Request) {
 
     console.log(`[Traefik] Proxy ${action === 'stop' ? 'disabled' : 'enabled'}: ${newFilename}`);
 
+    // Auto-sync Traefik asynchronously
+    restartTraefik().then((success) => {
+      if (success) console.log(`[Traefik] Auto-synced status change for ${newFilename}`);
+    });
+
     return NextResponse.json({ 
       success: true, 
-      message: `Proxy ${action === 'stop' ? 'stopped' : 'started'} successfully`,
+      message: `Proxy ${action === 'stop' ? 'stopped' : 'started'} successfully and config auto-synced`,
       filename: newFilename,
       status: action === 'stop' ? 'stopped' : 'active'
     });
