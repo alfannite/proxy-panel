@@ -6,7 +6,17 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}Starting ProxyPanel Pre-flight Checks...${NC}"
+echo -e "${GREEN}Fetching latest updates from GitHub...${NC}"
+git pull origin main || echo -e "${YELLOW}Could not pull latest changes (local modifications might exist). Proceeding...${NC}"
+
+echo -e "\n${GREEN}Stopping existing ProxyPanel containers (if any)...${NC}"
+if docker compose version > /dev/null 2>&1; then
+    docker compose down
+else
+    docker-compose down
+fi
+
+echo -e "\n${GREEN}Starting ProxyPanel Pre-flight Checks...${NC}"
 
 # Define required ports
 REQUIRED_PORTS=(80 443 8080 3000)
@@ -15,29 +25,27 @@ CONFLICT=false
 # Function to check if a port is in use
 check_port() {
     local port=$1
-    # We use ss or netstat to check if the port is in use. We redirect stderr to /dev/null to avoid noise.
     if command -v ss > /dev/null; then
         if ss -tuln | grep -q ":$port "; then
-            return 0 # Port is in use
+            return 0
         fi
     elif command -v netstat > /dev/null; then
         if netstat -tuln | grep -q ":$port "; then
-            return 0 # Port is in use
+            return 0
         fi
     else
-        # If neither ss nor netstat is available, try lsof
         if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-            return 0 # Port is in use
+            return 0
         fi
     fi
-    return 1 # Port is free
+    return 1
 }
 
 echo "Checking required ports..."
 
 for port in "${REQUIRED_PORTS[@]}"; do
     if check_port "$port"; then
-        echo -e "${RED}[ERROR] Port $port is already in use by another service on your system.${NC}"
+        echo -e "${RED}[ERROR] Port $port is STILL in use by another service on your system.${NC}"
         CONFLICT=true
     else
         echo -e "${GREEN}[OK] Port $port is free.${NC}"
