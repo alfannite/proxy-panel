@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type CSSProperties,
 } from "react";
+import { createPortal } from "react-dom";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -158,11 +159,13 @@ export function ThemeToggle({
   const [phase, setPhase]     = useState<CurtainPhase>("idle");
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const curtainColorRef       = useRef<string>("");
   const t                     = TOKENS[theme];
 
   // Sync with global Tailwind dark class on mount
   useEffect(() => {
+    setMounted(true);
     if (typeof document !== "undefined") {
       const isDark = document.documentElement.classList.contains("dark");
       if (isDark && theme !== "dark") {
@@ -260,6 +263,11 @@ export function ThemeToggle({
     pointerEvents: "none",
   };
 
+  const curtainElement = mounted ? createPortal(
+    <div aria-hidden="true" style={curtainStyle} />,
+    document.body
+  ) : null;
+
   const appBarSectionStyle: CSSProperties = {
     display: "flex",
     alignItems: "center",
@@ -269,7 +277,7 @@ export function ThemeToggle({
   if (isIcon) {
     return (
       <>
-        <div aria-hidden="true" style={curtainStyle} />
+        {curtainElement}
         <button
           style={btnStyle}
           onClick={toggle}
@@ -289,7 +297,7 @@ export function ThemeToggle({
   return (
     <div style={pageStyle}>
       {/* Curtain overlay */}
-      <div aria-hidden="true" style={curtainStyle} />
+      {curtainElement}
 
       {/* Fixed top bar */}
       <div style={barStyle}>
