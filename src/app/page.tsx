@@ -557,28 +557,28 @@ export default function Dashboard() {
         </header>
 
         {/* Stats */}
-        <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <article className="solid-card p-6 flex flex-col gap-4 col-span-1">
-            <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center perspective-[1000px]">
-              <Globe className="w-6 h-6 text-primary-500 animate-[spin-y_4s_linear_infinite]" style={{ transformStyle: 'preserve-3d' }} />
+        <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 mb-12">
+          <article className="solid-card p-5 lg:p-6 flex flex-col gap-3 lg:gap-4 col-span-1 xl:col-span-1 justify-center">
+            <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center perspective-[1000px]">
+              <Globe className="w-5 h-5 lg:w-6 lg:h-6 text-primary-500 animate-[spin-y_4s_linear_infinite]" style={{ transformStyle: 'preserve-3d' }} />
             </div>
             <div>
-              <p className="text-4xl font-serif text-text-main mb-1 tracking-tight">{proxies.length}</p>
-              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Active Domains</p>
+              <p className="text-3xl lg:text-4xl font-serif text-text-main mb-1 tracking-tight truncate">{proxies.length}</p>
+              <p className="text-[11px] lg:text-[13px] text-text-muted font-medium uppercase tracking-wide">Active Domains</p>
             </div>
           </article>
           
-          <div className="col-span-1 md:col-span-2 min-h-[160px] h-full">
+          <div className="col-span-1 md:col-span-2 xl:col-span-2 min-h-[160px] h-full order-last xl:order-none">
             <TrafficChart />
           </div>
 
-          <article className="solid-card p-6 flex flex-col gap-4 col-span-1">
-            <div className={`w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center ${traefikConnected && cfConnected ? 'animate-pulse' : ''}`}>
-              <Zap className={`w-6 h-6 ${traefikConnected && cfConnected ? 'text-primary-500' : 'text-accent-rust'}`} />
+          <article className="solid-card p-5 lg:p-6 flex flex-col gap-3 lg:gap-4 col-span-1 xl:col-span-1 justify-center">
+            <div className={`w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center ${traefikConnected && cfConnected ? 'animate-pulse' : ''}`}>
+              <Zap className={`w-5 h-5 lg:w-6 lg:h-6 ${traefikConnected && cfConnected ? 'text-primary-500' : 'text-accent-rust'}`} />
             </div>
             <div>
-              <p className="text-4xl font-serif text-text-main mb-1">{traefikConnected && cfConnected ? "Healthy" : "Degraded"}</p>
-              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">System Health</p>
+              <p className="text-3xl lg:text-4xl font-serif text-text-main mb-1 tracking-tight truncate">{traefikConnected && cfConnected ? "Healthy" : "Degraded"}</p>
+              <p className="text-[11px] lg:text-[13px] text-text-muted font-medium uppercase tracking-wide">System Health</p>
             </div>
           </article>
         </section>
