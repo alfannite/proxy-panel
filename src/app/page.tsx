@@ -760,18 +760,21 @@ export default function Dashboard() {
 
       {/* Add New Proxy Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} zIndex={50}>
-        <div className="solid-panel relative w-full w-[500px] max-w-[95vw] max-h-[90vh] overflow-y-auto p-6 md:p-8 shadow-2xl">
+        <div className="solid-panel relative w-full w-[500px] max-w-[95vw] max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base"
+              className="absolute top-4 right-4 md:top-6 md:right-6 p-2 text-text-muted hover:text-text-main bg-bg-base rounded-full transition-colors border border-border-base z-10"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl md:text-2xl font-serif text-text-main mb-2">{isEditMode ? "Edit Proxy" : "Create New Proxy"}</h3>
-            <p className="text-text-muted text-[13px] md:text-[14px] mb-8">{isEditMode ? "Update domain and backend routing dynamically." : "Route a new domain to your internal service."}</p>
+            <div className="p-6 md:p-8 pb-4 shrink-0 border-b border-border-base/50">
+              <h3 className="text-xl md:text-2xl font-serif text-text-main mb-2">{isEditMode ? "Edit Proxy" : "Create New Proxy"}</h3>
+              <p className="text-text-muted text-[13px] md:text-[14px]">{isEditMode ? "Update domain and backend routing dynamically." : "Route a new domain to your internal service."}</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <div className="p-6 md:p-8 pt-6 overflow-y-auto custom-scrollbar flex-1">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               
               {/* === SECTION 1: TRAEFIK BACKEND === */}
               <div className="bg-surface-hover p-4 rounded-xl border border-border-base flex flex-col gap-5">
@@ -1002,6 +1005,7 @@ export default function Dashboard() {
               </div>
             </form>
           </div>
+        </div>
       </Modal>
 
       <Modal isOpen={!!uiError} onClose={() => setUiError(null)} zIndex={60}>

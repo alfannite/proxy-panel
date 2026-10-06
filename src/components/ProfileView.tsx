@@ -521,10 +521,13 @@ export function ProfileView({ onBack }: { onBack?: () => void }) {
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setShowPasswordModal(false); setRevealedCreds(null); setPreviewPassword(""); }} />
-          <div className="solid-panel relative w-full max-w-[95vw] sm:max-w-sm max-h-[90vh] overflow-y-auto p-6 shadow-2xl transform transition-all z-10">
-            <h3 className="text-lg font-serif text-text-main mb-4 border-b border-border-base pb-3">Admin Verification</h3>
+          <div className="solid-panel relative w-full max-w-[95vw] sm:max-w-sm max-h-[90vh] flex flex-col shadow-2xl transform transition-all z-10 overflow-hidden">
+            <div className="p-6 pb-4 shrink-0 border-b border-border-base/50">
+              <h3 className="text-lg font-serif text-text-main">Admin Verification</h3>
+            </div>
             
-            {revealedCreds ? (
+            <div className="p-6 pt-6 overflow-y-auto custom-scrollbar flex-1">
+              {revealedCreds ? (
               <div>
                 <p className="text-[13px] text-text-muted mb-4">Credentials revealed securely. Close this window to hide them.</p>
                 <div className="space-y-4 mb-4">
@@ -563,6 +566,7 @@ export function ProfileView({ onBack }: { onBack?: () => void }) {
                 </div>
               </form>
             )}
+            </div>
           </div>
         </div>
       )}
