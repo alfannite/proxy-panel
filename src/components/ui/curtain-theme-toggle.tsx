@@ -232,8 +232,7 @@ export function ThemeToggle({
   const pageStyle: CSSProperties = {
     minHeight: "100vh",
     paddingTop: barHeight,
-    background: t.pageBg,
-    color: t.pageText,
+    background: "transparent",
     transition: "background 0.3s ease, color 0.3s ease",
   };
 
