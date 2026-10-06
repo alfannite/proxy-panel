@@ -110,62 +110,59 @@ export function TrafficChart() {
   return (
     <div className="w-full h-full flex flex-col relative overflow-hidden group rounded-2xl border border-border-base bg-surface-base shadow-sm animate-fadeIn">
       {/* Header Info */}
-      <div className="px-5 pt-5 pb-2 relative z-10 flex flex-col md:flex-row justify-between gap-4">
-        <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3 w-full">
-                <p className="text-[13px] text-text-muted font-medium">Total requests • {rangeLabels[range]}</p>
-                <div className="relative" ref={dropdownRef}>
-                    <div 
-                        onClick={() => setDropdownOpen(!dropdownOpen)}
-                        className="text-text-muted hover:text-text-main cursor-pointer tracking-widest leading-none font-bold pb-2"
-                    >
-                    ...
-                    </div>
-                    {dropdownOpen && (
-                        <div className="absolute left-0 top-full mt-1 w-36 bg-surface-base border border-border-base rounded-lg shadow-lg z-50 overflow-hidden text-sm">
-                        {(Object.keys(rangeLabels) as TimeRange[]).map((r) => (
-                            <button
-                            key={r}
-                            onClick={() => { setRange(r); setDropdownOpen(false); }}
-                            className={`w-full text-left px-4 py-2 hover:bg-surface-hover ${range === r ? 'text-primary-500 font-medium' : 'text-text-main'}`}
-                            >
-                            {rangeLabels[r]}
-                            </button>
-                        ))}
+      <div className="px-5 pt-5 pb-0 relative z-10 flex flex-col gap-3">
+        {/* Top Row: Title + Dropdown + CPU/RAM */}
+        <div className="flex justify-between items-start">
+            <div>
+                <div className="flex items-center gap-2">
+                    <p className="text-[12px] text-text-muted font-medium">Total requests • {rangeLabels[range]}</p>
+                    <div className="relative" ref={dropdownRef}>
+                        <div 
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                            className="text-text-muted hover:text-text-main cursor-pointer leading-none font-bold pb-1"
+                        >
+                        ...
                         </div>
+                        {dropdownOpen && (
+                            <div className="absolute left-0 top-full mt-1 w-36 bg-surface-base border border-border-base rounded-lg shadow-lg z-50 overflow-hidden text-sm">
+                            {(Object.keys(rangeLabels) as TimeRange[]).map((r) => (
+                                <button
+                                key={r}
+                                onClick={() => { setRange(r); setDropdownOpen(false); }}
+                                className={`w-full text-left px-4 py-2 hover:bg-surface-hover ${range === r ? 'text-primary-500 font-medium' : 'text-text-main'}`}
+                                >
+                                {rangeLabels[r]}
+                                </button>
+                            ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="flex items-baseline gap-3 mt-1">
+                    {loading && totalRequests === null ? (
+                        <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
+                    ) : (
+                        <h3 className="text-2xl font-bold text-text-main tracking-tight">
+                        {totalRequests !== null ? formatNumber(totalRequests) : '0'}
+                        </h3>
                     )}
                 </div>
             </div>
-            
-            <div className="flex items-baseline gap-3 min-h-[36px]">
-                {loading && totalRequests === null ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
-                ) : (
-                    <h3 className="text-3xl font-bold text-text-main tracking-tight">
-                    {totalRequests !== null ? formatNumber(totalRequests) : '0'}
-                    </h3>
-                )}
-            </div>
-        </div>
 
-        {/* Realtime Badges */}
-        <div className="flex gap-4 items-center mb-2 md:mb-0">
-            <div className="flex flex-col items-end">
-                <span className="text-[10px] text-text-muted font-bold tracking-wider uppercase flex items-center gap-1.5">
+            {/* Right Side Metrics */}
+            <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2 bg-bg-base px-2 py-1 rounded-md border border-border-base">
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                    Live Traffic
-                </span>
-                <span className="text-xl font-bold text-primary-500 font-mono">
-                    {currentMetrics.rps} <span className="text-xs text-text-muted font-sans font-normal">req/s</span>
-                </span>
-            </div>
-            <div className="w-[1px] h-8 bg-border-base"></div>
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
-                    <Cpu className="w-3 h-3 text-accent-sage" /> CPU: {currentMetrics.cpu}%
+                    <span className="text-[10px] text-text-muted font-bold tracking-wider uppercase">Live</span>
+                    <span className="text-sm font-bold text-primary-500 font-mono ml-1">{currentMetrics.rps} <span className="text-[10px] font-sans font-normal text-text-muted">req/s</span></span>
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
-                    <HardDrive className="w-3 h-3 text-accent-rust" /> RAM: {currentMetrics.ram}%
+                <div className="flex gap-2">
+                    <div className="flex items-center gap-1 text-[10px] text-text-muted font-medium bg-bg-base px-1.5 py-0.5 rounded border border-border-base">
+                        <Cpu className="w-3 h-3 text-accent-sage" /> {currentMetrics.cpu}%
+                    </div>
+                    <div className="flex items-center gap-1 text-[10px] text-text-muted font-medium bg-bg-base px-1.5 py-0.5 rounded border border-border-base">
+                        <HardDrive className="w-3 h-3 text-accent-rust" /> {currentMetrics.ram}%
+                    </div>
                 </div>
             </div>
         </div>
