@@ -253,10 +253,13 @@ export function ThemeToggle({
 
   const curtainStyle: CSSProperties = {
     position: "fixed",
-    inset: 0,
+    top: "50%",
+    left: "50%",
+    width: "300vmax",
+    height: "300vmax",
+    borderRadius: "50%",
     background: curtainColorRef.current,
-    transformOrigin: "top",
-    transform: phase === "falling" ? "scaleY(1)" : "scaleY(0)",
+    transform: phase === "falling" ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0)",
     transition:
       phase !== "idle" ? `transform ${duration}ms ${EASING}` : "none",
     zIndex: 9997,
