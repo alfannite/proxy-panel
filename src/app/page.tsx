@@ -546,16 +546,16 @@ export default function Dashboard() {
             </div>
           </header>
 
-          <div className="overflow-x-auto rounded-xl border border-border-base bg-surface-base">
-            <table className="w-full text-left border-collapse min-w-[900px]">
+          <div className="overflow-x-auto rounded-xl border border-border-base bg-surface-base w-full custom-scrollbar pb-2">
+            <table className="w-full text-left border-collapse min-w-[1100px]">
               <thead>
                 <tr className="bg-surface-hover/80 text-text-main text-[12px] font-bold uppercase tracking-widest border-b border-border-base">
-                  <th className="py-4 pl-6 font-semibold w-1/4">Service Name</th>
-                  <th className="py-4 font-semibold w-1/4">Routing Domain</th>
-                  <th className="py-4 font-semibold">Cloudflare</th>
-                  <th className="py-4 font-semibold">Public IP</th>
-                  <th className="py-4 font-semibold">Target Backend</th>
-                  <th className="py-4 font-semibold text-center pr-4">Action</th>
+                  <th className="py-4 pl-6 pr-4 font-semibold w-[20%]">Service Name</th>
+                  <th className="py-4 px-4 font-semibold w-[22%]">Routing Domain</th>
+                  <th className="py-4 px-4 font-semibold w-[12%]">Cloudflare</th>
+                  <th className="py-4 px-4 font-semibold w-[16%]">Public IP</th>
+                  <th className="py-4 px-4 font-semibold w-[20%]">Target Backend</th>
+                  <th className="py-4 pl-4 pr-6 font-semibold text-center w-[10%]">Action</th>
                 </tr>
               </thead>
               <tbody className="text-[14px]">
@@ -584,17 +584,19 @@ export default function Dashboard() {
                 ) : (
                   filteredProxies.map((proxy, i) => (
                     <tr key={i} className="border-b border-border-base hover:bg-surface-hover/50 transition-colors duration-200 group">
-                      <td className="py-5 pl-6 font-medium text-text-main flex items-center gap-3">
-                        {renderStatusIcon(proxy.domain, proxy.status)}
-                        <span className={proxy.status === 'stopped' ? 'line-through text-text-muted' : ''}>{proxy.serviceName}</span>
+                      <td className="py-5 pl-6 pr-4 font-medium text-text-main">
+                        <div className="flex items-center gap-3">
+                          {renderStatusIcon(proxy.domain, proxy.status)}
+                          <span className={`truncate ${proxy.status === 'stopped' ? 'line-through text-text-muted' : ''}`}>{proxy.serviceName}</span>
+                        </div>
                       </td>
-                      <td className="py-5 text-accent-sage font-medium">
+                      <td className="py-5 px-4 text-accent-sage font-medium">
                         <a href={`https://${proxy.domain}`} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1.5 w-max">
                           {proxy.domain}
-                          <ExternalLink className="w-3.5 h-3.5" />
+                          <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
                         </a>
                       </td>
-                      <td className="py-5">
+                      <td className="py-5 px-4 whitespace-nowrap">
                         {cfConnected ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#F38020]/10 text-[#F38020] border border-[#F38020]/20 shadow-[0_0_10px_-2px_rgba(243,128,32,0.2)]">
                             <Cloud className="w-3 h-3" /> Proxied
@@ -605,18 +607,20 @@ export default function Dashboard() {
                           </span>
                         )}
                       </td>
-                      <td className="py-5 font-mono text-[13px] text-text-main/70">
+                      <td className="py-5 px-4 font-mono text-[13px] text-text-main/70 whitespace-nowrap">
                         {proxy.publicIp || "N/A"}
                       </td>
-                      <td className="py-5 text-text-main/70 font-mono text-[13px]">{proxy.targetUrl}</td>
-                      <td className="py-5 pr-4">
+                      <td className="py-5 px-4 text-text-main/70 font-mono text-[13px] break-all min-w-[180px]">
+                        {proxy.targetUrl}
+                      </td>
+                      <td className="py-5 pl-4 pr-6">
                         <div className="flex justify-center">
                           <button 
                             onClick={() => setManageProxy(proxy)}
                             className="group relative px-5 py-2 rounded-xl text-[13px] font-medium bg-surface-base border border-border-base text-text-main overflow-hidden transition-all duration-300 hover:border-primary-500/50 hover:shadow-[0_0_15px_-3px_rgba(235,100,52,0.2)]"
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-primary-500/0 via-primary-500/10 to-primary-500/0 opacity-0 group-hover:opacity-100 transition-all duration-700 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
-                            <span className="relative flex items-center gap-2">
+                            <span className="relative flex items-center gap-2 whitespace-nowrap">
                               <Settings2 className="w-4 h-4 text-text-muted group-hover:text-primary-500 transition-colors duration-300" />
                               Manage
                             </span>

@@ -99,12 +99,12 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-dark-bg); 
+  background: var(--color-bg-base); 
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-dark-border); 
+  background: var(--color-border-base); 
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neutral-600); 
+  background: var(--color-text-muted); 
 }
