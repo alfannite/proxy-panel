@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { Modal } from "@/components/Modal";
 import { ThemeToggle } from "@/components/ui/curtain-theme-toggle";
 import { TrafficChart } from "@/components/ui/traffic-chart";
+import { ProfileView } from "@/components/ProfileView";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -23,6 +24,9 @@ export default function Dashboard() {
   // Responsive Sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // Desktop
+
+  // Routing State
+  const [activePage, setActivePage] = useState<'dashboard' | 'profile'>('dashboard');
 
   // General State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -416,7 +420,10 @@ export default function Dashboard() {
         </button>
 
         <nav className="flex flex-col gap-2">
-          <button className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl bg-primary-500/10 text-primary-500 font-medium border border-primary-500/20 transition-all`}>
+          <button 
+            onClick={() => { setActivePage('dashboard'); setIsSidebarOpen(false); }}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl font-medium transition-all duration-200 group ${activePage === 'dashboard' ? 'bg-primary-500/10 text-primary-500 border border-primary-500/20' : 'text-text-muted hover:text-primary-500 hover:bg-surface-hover border border-transparent'}`}
+          >
             <LayoutDashboard className="w-5 h-5 shrink-0" />
             {!isSidebarCollapsed && <span>Dashboard</span>}
           </button>
@@ -426,7 +433,10 @@ export default function Dashboard() {
 
           <ThemeToggle variant="sidebar-row" isCollapsed={isSidebarCollapsed} />
 
-          <button onClick={() => router.push("/profile")} className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200 group`}>
+          <button 
+            onClick={() => { setActivePage('profile'); setIsSidebarOpen(false); }}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl font-medium transition-all duration-200 group ${activePage === 'profile' ? 'bg-primary-500/10 text-primary-500 border border-primary-500/20' : 'text-text-muted hover:text-primary-500 hover:bg-surface-hover border border-transparent'}`}
+          >
             <User className="w-5 h-5 transition-colors shrink-0 group-hover:text-primary-500" />
             {!isSidebarCollapsed && <span>Profile & Security</span>}
           </button>
@@ -501,7 +511,9 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        {activePage === 'dashboard' ? (
+          <div className="animate-in fade-in zoom-in-95 duration-300">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
             <h2 className="text-3xl font-serif text-text-main mb-2">Proxy Overview</h2>
             <p className="text-text-muted text-[15px]">Dynamic edge routing and ingress orchestration.</p>
@@ -735,6 +747,10 @@ export default function Dashboard() {
             </>
           )}
         </section>
+        </div>
+        ) : (
+          <ProfileView onBack={() => setActivePage('dashboard')} />
+        )}
       </main>
 
       {/* Add New Proxy Modal */}

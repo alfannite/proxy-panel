@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function ProfilePage() {
+export function ProfileView({ onBack }: { onBack?: () => void }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -216,21 +216,13 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="min-h-screen bg-bg-base font-sans p-6 md:p-12">
-      <div className="max-w-4xl mx-auto">
-        
+    <div className="max-w-4xl w-full animate-in fade-in zoom-in-95 duration-300">
         {/* Header */}
-        <header className="mb-12">
-          <button 
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 text-text-muted hover:text-primary-500 transition-colors font-medium mb-8 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-md"
-            aria-label="Back to Dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" aria-hidden="true" /> Back to Dashboard
-          </button>
-
-          <h1 className="text-3xl font-serif text-text-main mb-2">Profile & Security</h1>
-          <p className="text-text-muted">Manage your administrator account and integration keys.</p>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <h2 className="text-3xl font-serif text-text-main mb-2">Profile & Security</h2>
+            <p className="text-text-muted text-[15px]">Manage your administrator account and integration keys.</p>
+          </div>
         </header>
 
         <div className="flex flex-col md:flex-row gap-8">
@@ -526,8 +518,6 @@ export default function ProfilePage() {
             )}
           </section>
         </div>
-      </div>
-
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 transition-opacity" onClick={() => { setShowPasswordModal(false); setRevealedCreds(null); setPreviewPassword(""); }} />
@@ -576,6 +566,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
