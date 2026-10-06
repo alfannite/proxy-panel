@@ -12,6 +12,7 @@ import { Modal } from "@/components/Modal";
 import { ThemeToggle } from "@/components/ui/curtain-theme-toggle";
 import { TrafficChart } from "@/components/ui/traffic-chart";
 import { ProfileView } from "@/components/ProfileView";
+import TerminalView from "@/components/TerminalView";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export default function Dashboard() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // Desktop
 
   // Routing State
-  const [activePage, setActivePage] = useState<'dashboard' | 'profile'>('dashboard');
+  const [activePage, setActivePage] = useState<'dashboard' | 'profile' | 'terminal'>('dashboard');
 
   // General State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -433,6 +434,14 @@ export default function Dashboard() {
             {!isSidebarCollapsed && <span>Dashboard</span>}
           </button>
 
+          <button 
+            onClick={() => { setActivePage('terminal'); setIsSidebarOpen(false); }}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl font-medium transition-all duration-200 group ${activePage === 'terminal' ? 'bg-primary-500/10 text-primary-500 border border-primary-500/20' : 'text-text-muted hover:text-primary-500 hover:bg-surface-hover border border-transparent'}`}
+          >
+            <Server className="w-5 h-5 transition-colors shrink-0 group-hover:text-primary-500" />
+            {!isSidebarCollapsed && <span>Terminal</span>}
+          </button>
+
 
           <div className="my-2 border-t border-border-base w-full"></div>
 
@@ -516,7 +525,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {activePage === 'dashboard' ? (
+        {activePage === 'terminal' ? (
+           <div className="animate-in fade-in zoom-in-95 duration-300 h-[calc(100vh-140px)]">
+             <TerminalView />
+           </div>
+        ) : activePage === 'dashboard' ? (
           <div className="animate-in fade-in zoom-in-95 duration-300">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div>
