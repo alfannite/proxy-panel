@@ -45,11 +45,11 @@ services:
       - NODE_ENV=production
       - HOSTNAME=0.0.0.0
       - JWT_SECRET=super_secret_jwt_key_12345_ganti_ini
-      - DATABASE_URL=file:/app/prisma/dev.db
+      - DATABASE_URL=file:/app/prisma/data/dev.db
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - traefik-data:/opt/proxy/traefik-core
-      - prisma-data:/app/prisma
+      - prisma-data:/app/prisma/data
     networks:
       - proxypanel-net
 
@@ -61,9 +61,9 @@ services:
       - "5555:5555"
     working_dir: /app
     environment:
-      - DATABASE_URL=file:/app/prisma/dev.db
+      - DATABASE_URL=file:/app/prisma/data/dev.db
     volumes:
-      - prisma-data:/app/prisma
+      - prisma-data:/app/prisma/data
     command: sh -c "npm install -g prisma@5.22.0 && npx prisma studio --schema=prisma/schema.prisma --port 5555 --hostname 0.0.0.0"
     networks:
       - proxypanel-net
