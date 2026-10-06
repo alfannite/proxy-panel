@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Globe, Activity, Plus, Server, LayoutDashboard,
   Search, Shield, X, ExternalLink, LogOut, User, Info,
-  Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2,
+  Menu, Moon, Sun, CheckCircle2, AlertTriangle, Zap, Loader2, PanelLeftClose, PanelLeftOpen,
   Link, Unlink, Settings2, Play, Power, Edit2, Trash2, RefreshCw, StopCircle, Network, Cloud, Palette
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -20,7 +20,8 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
 
   // Responsive Sidebar
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); // Desktop
 
   // General State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -392,62 +393,74 @@ export default function Dashboard() {
           </button>
         </div>
 
+        {/* Toggle Collapse Button (Desktop Only) */}
+        <button
+           onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+           className="hidden md:flex absolute top-7 -right-4 w-8 h-8 bg-surface-base border border-border-base rounded-full items-center justify-center text-text-muted hover:text-primary-500 hover:border-primary-500 shadow-sm z-50 transition-colors"
+        >
+           {isSidebarCollapsed ? <PanelLeftOpen className="w-4 h-4" /> : <PanelLeftClose className="w-4 h-4" />}
+        </button>
+
         <nav className="flex flex-col gap-2">
-          <button className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-500/10 text-primary-500 font-medium border border-primary-500/20 transition-all">
-            <LayoutDashboard className="w-5 h-5" />
-            Dashboard
+          <button className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl bg-primary-500/10 text-primary-500 font-medium border border-primary-500/20 transition-all`}>
+            <LayoutDashboard className="w-5 h-5 shrink-0" />
+            {!isSidebarCollapsed && <span>Dashboard</span>}
           </button>
 
 
           <div className="my-2 border-t border-border-base w-full"></div>
 
-          <div className="flex items-center justify-between px-4 py-2 mt-2">
-            <div className="flex items-center gap-3 text-text-muted font-medium">
-              <Palette className="w-5 h-5" />
-              <span>Theme Mode</span>
-            </div>
-            <div className="scale-90">
-              <ThemeToggle variant="icon" />
-            </div>
-          </div>
+          <ThemeToggle variant="sidebar-row" isCollapsed={isSidebarCollapsed} />
 
-          <button onClick={() => router.push("/profile")} className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200">
-            <User className="w-5 h-5 transition-colors" />
-            Profile & Security
+          <button onClick={() => router.push("/profile")} className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200 group`}>
+            <User className="w-5 h-5 transition-colors shrink-0 group-hover:text-primary-500" />
+            {!isSidebarCollapsed && <span>Profile & Security</span>}
           </button>
 
-          <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-text-muted hover:text-accent-rust hover:bg-accent-rust/10 font-medium transition-all duration-200 mt-auto">
-            <LogOut className="w-5 h-5 transition-colors" />
-            Logout
+          <button onClick={handleLogout} className={`flex items-center ${isSidebarCollapsed ? 'justify-center p-3' : 'gap-3 px-4 py-3'} rounded-xl text-text-muted hover:text-accent-rust hover:bg-accent-rust/10 font-medium transition-all duration-200 mt-auto group`}>
+            <LogOut className="w-5 h-5 transition-colors shrink-0 group-hover:text-accent-rust" />
+            {!isSidebarCollapsed && <span>Logout</span>}
           </button>
         </nav>
 
         {/* Connection Status Checklist */}
-        <div className="mt-auto p-4 rounded-[24px] bg-surface-base shadow-[var(--shadow-inner)] border border-border-base relative overflow-hidden">
-          <div className="flex items-center justify-between mb-3 relative z-10">
-            <span className="text-[12px] font-bold text-text-muted uppercase tracking-wider">Connections</span>
-            <button
-              onClick={handleAutoHeal}
-              disabled={isHealing}
-              className="text-[11px] font-medium text-primary-500 bg-primary-500/10 px-2 py-1 rounded flex items-center gap-1 hover:bg-primary-500/20 transition-colors"
-            >
-              {isHealing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
-              Heal
-            </button>
-          </div>
+        <div className={`mt-auto p-4 rounded-[24px] bg-surface-base shadow-[var(--shadow-inner)] border border-border-base relative overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'px-2' : ''}`}>
+          {!isSidebarCollapsed ? (
+            <>
+              <div className="flex items-center justify-between mb-3 relative z-10">
+                <span className="text-[12px] font-bold text-text-muted uppercase tracking-wider">Connections</span>
+                <button
+                  onClick={handleAutoHeal}
+                  disabled={isHealing}
+                  className="text-[11px] font-medium text-primary-500 bg-primary-500/10 px-2 py-1 rounded flex items-center gap-1 hover:bg-primary-500/20 transition-colors"
+                >
+                  {isHealing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                  Heal
+                </button>
+              </div>
 
-          <div className="space-y-2 relative z-10">
-            <div className="flex items-center gap-2">
-              {traefikConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
-              <span className={`text-[13px] font-medium ${traefikConnected ? 'text-text-main' : 'text-accent-rust'}`}>Engine Proxies</span>
+              <div className="space-y-2 relative z-10">
+                <div className="flex items-center gap-2">
+                  {traefikConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
+                  <span className={`text-[13px] font-medium ${traefikConnected ? 'text-text-main' : 'text-accent-rust'}`}>Engine Proxies</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {cfConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
+                  <span className={`text-[13px] font-medium ${cfConnected ? 'text-text-main' : 'text-accent-rust'}`}>Cloudflare API</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 relative z-10">
+               {traefikConnected ? <CheckCircle2 className="w-5 h-5 text-accent-sage" /> : <AlertTriangle className="w-5 h-5 text-accent-rust" />}
+               {cfConnected ? <CheckCircle2 className="w-5 h-5 text-accent-sage" /> : <AlertTriangle className="w-5 h-5 text-accent-rust" />}
+               <button onClick={handleAutoHeal} disabled={isHealing} className="mt-2 text-primary-500 bg-primary-500/10 p-2 rounded-full">
+                 {isHealing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+               </button>
             </div>
-            <div className="flex items-center gap-2">
-              {cfConnected ? <CheckCircle2 className="w-4 h-4 text-accent-sage" /> : <AlertTriangle className="w-4 h-4 text-accent-rust" />}
-              <span className={`text-[13px] font-medium ${cfConnected ? 'text-text-main' : 'text-accent-rust'}`}>Cloudflare API</span>
-            </div>
-          </div>
+          )}
 
-          {(!traefikConnected || !cfConnected) && (
+          {(!traefikConnected || !cfConnected) && !isSidebarCollapsed && (
             <div className="mt-3 p-3 rounded-lg text-[11px] font-medium text-accent-rust bg-accent-rust/10 border border-accent-rust/20 leading-tight flex items-start gap-2 animate-[fadeIn_0.3s_ease-out_forwards,fadeOut_0.5s_ease-in_5s_forwards] shadow-sm">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>Status Degraded.<br />Auto Healing recommended.</span>

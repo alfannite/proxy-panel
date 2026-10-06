@@ -29,7 +29,7 @@ export interface AppBarProps {
 
 export interface ThemeToggleProps {
   /** Variant of the top bar. Default: "default" */
-  variant?: "default" | "appbar" | "icon";
+  variant?: "default" | "appbar" | "icon" | "sidebar-row";
   /** Content for the app bar when variant is "appbar" */
   appBarProps?: AppBarProps;
   /** Starting theme. Default: "light" */
@@ -42,6 +42,8 @@ export interface ThemeToggleProps {
   duration?: number;
   /** Called after each theme change completes */
   onThemeChange?: (theme: Theme) => void;
+  /** Pass true if sidebar is collapsed (only for sidebar-row variant) */
+  isCollapsed?: boolean;
   /** Page content rendered below the bar */
   children?: ReactNode;
 }
@@ -137,6 +139,18 @@ function UserIcon() {
   );
 }
 
+function PaletteIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/>
+      <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/>
+      <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/>
+      <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/>
+      <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>
+    </svg>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 type CurtainPhase = "idle" | "falling" | "rising";
@@ -151,10 +165,12 @@ export function ThemeToggle({
   buttonSize   = 36,
   duration     = 550,
   onThemeChange,
+  isCollapsed  = false,
   children,
 }: ThemeToggleProps) {
   const isAppBar = variant === "appbar";
   const isIcon = variant === "icon";
+  const isSidebarRow = variant === "sidebar-row";
   const barHeight = explicitBarHeight ?? (isAppBar ? 60 : 44);
 
   const [theme, setTheme]     = useState<Theme>(defaultTheme);
@@ -305,6 +321,37 @@ export function ThemeToggle({
       z-index: 1;
     }
   `;
+
+  if (isSidebarRow) {
+    return (
+      <>
+        <style dangerouslySetInnerHTML={{ __html: globalStyles }} />
+        <button
+          onClick={toggle as any}
+          className={`flex items-center w-full rounded-xl text-text-muted hover:text-primary-500 hover:bg-surface-hover font-medium transition-all duration-200 group ${isCollapsed ? 'justify-center p-3' : 'justify-between px-4 py-3'}`}
+          aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+        >
+          <div className="flex items-center gap-3">
+            <PaletteIcon />
+            {!isCollapsed && <span>Theme Mode</span>}
+          </div>
+          {!isCollapsed && (
+            <div 
+              className="relative flex items-center w-[36px] h-[20px] rounded-full transition-colors duration-300 border border-border-base shadow-inner"
+              style={{ background: theme === 'dark' ? 'var(--color-primary-500)' : 'var(--theme-surface)' }}
+            >
+               <div 
+                 className="absolute w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-transform duration-300 flex items-center justify-center"
+                 style={{ transform: theme === 'dark' ? 'translateX(18px)' : 'translateX(2px)' }}
+               >
+                  {theme === 'dark' ? <MoonIcon /> : <SunIcon />}
+               </div>
+            </div>
+          )}
+        </button>
+      </>
+    );
+  }
 
   if (isIcon) {
     return (
