@@ -68,7 +68,7 @@ export default function Dashboard() {
     // Realtime Polling (every 5 seconds) to auto-update IPs and Status
     const interval = setInterval(() => {
       fetchProxies(true);
-      checkConnections();
+      checkConnections(true);
     }, 5000);
 
     return () => clearInterval(interval);
@@ -87,13 +87,13 @@ export default function Dashboard() {
     }
   };
 
-  const checkConnections = async () => {
+  const checkConnections = async (silent = false) => {
     try {
       const res = await fetch("/api/settings", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
       const result = await res.json();
       if (result.success && result.data && result.data.CF_API_TOKEN) {
         setCfConnected(true);
-        fetchZones();
+        fetchZones(silent);
       } else {
         setCfConnected(false);
       }
@@ -113,8 +113,8 @@ export default function Dashboard() {
     }
   };
 
-  const fetchZones = async () => {
-    setLoadingZones(true);
+  const fetchZones = async (silent = false) => {
+    if (!silent) setLoadingZones(true);
     try {
       const res = await fetch("/api/cloudflare/zones", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
       const result = await res.json();
@@ -132,7 +132,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoadingZones(false);
+      if (!silent) setLoadingZones(false);
     }
   };
 
