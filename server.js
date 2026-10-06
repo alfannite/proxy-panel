@@ -2,7 +2,8 @@ const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
 const { Server } = require('socket.io');
-const { Client } = require('ssh2');
+const os = require('os');
+const pty = require('node-pty');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -19,49 +20,35 @@ app.prepare().then(() => {
   });
 
   io.on('connection', (socket) => {
-    let sshConn = new Client();
-    let sshStream = null;
+    // Spawn a local shell directly
+    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+    
+    const ptyProcess = pty.spawn(shell, [], {
+      name: 'xterm-color',
+      cols: 80,
+      rows: 24,
+      cwd: process.cwd(),
+      env: process.env
+    });
 
-    socket.on('login', (credentials) => {
-      sshConn.on('ready', () => {
-         socket.emit('status', 'Connected');
-         sshConn.shell((err, stream) => {
-             if (err) { 
-                 socket.emit('data', '\r\n*** SSH SHELL ERROR ***\r\n'); 
-                 socket.emit('status', 'Disconnected');
-                 return; 
-             }
-             sshStream = stream;
-             stream.on('data', (d) => socket.emit('data', d.toString('utf-8')));
-             stream.on('close', () => {
-                 socket.emit('data', '\r\n*** SSH CONNECTION CLOSED ***\r\n');
-                 socket.emit('status', 'Disconnected');
-                 sshConn.end();
-             });
-         });
-      }).on('error', (err) => {
-         socket.emit('data', '\r\n*** SSH CONNECTION ERROR: ' + err.message + ' ***\r\n');
-         socket.emit('status', 'Disconnected');
-      }).on('end', () => {
-         socket.emit('status', 'Disconnected');
-      }).connect({
-         host: credentials.host || '172.17.0.1', // Default to docker host IP
-         port: credentials.port || 22,
-         username: credentials.username,
-         password: credentials.password,
-      });
+    ptyProcess.onData((data) => {
+      socket.emit('data', data);
     });
 
     socket.on('data', (data) => {
-      if (sshStream) sshStream.write(data);
+      ptyProcess.write(data);
     });
 
     socket.on('resize', (size) => {
-      if (sshStream) sshStream.setWindow(size.rows, size.cols, 480, 640);
+      try {
+        ptyProcess.resize(size.cols, size.rows);
+      } catch (e) {
+        // Ignore resize errors
+      }
     });
 
     socket.on('disconnect', () => {
-      sshConn.end();
+      ptyProcess.kill();
     });
   });
 

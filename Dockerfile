@@ -1,6 +1,7 @@
 # Build Stage
 FROM node:20 AS builder
 WORKDIR /app
+RUN apt-get update && apt-get install -y make g++ python3
 ENV DATABASE_URL="file:/app/prisma/data/dev.db"
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -14,6 +15,7 @@ RUN npm run build
 # Production Stage
 FROM node:20 AS runner
 WORKDIR /app
+RUN apt-get update && apt-get install -y make g++ python3
 
 ENV NODE_ENV=production
 ENV PORT=3000
