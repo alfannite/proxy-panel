@@ -188,12 +188,15 @@ export function ThemeToggle({
       return;
     }
 
-    const x = e.clientX;
-    const y = e.clientY;
+    const x = window.innerWidth / 2;
+    const y = window.innerHeight / 2;
     const endRadius = Math.hypot(
       Math.max(x, window.innerWidth - x),
       Math.max(y, window.innerHeight - y)
     );
+
+    const isToDark = next === "dark";
+    document.documentElement.classList.add(isToDark ? "theme-transition-to-dark" : "theme-transition-to-light");
 
     const transition = (document as any).startViewTransition(() => {
       setTheme(next);
@@ -209,14 +212,18 @@ export function ThemeToggle({
       ];
       document.documentElement.animate(
         {
-          clipPath: next === "dark" ? clipPath : [...clipPath].reverse(),
+          clipPath: isToDark ? clipPath : [...clipPath].reverse(),
         },
         {
           duration: 600,
           easing: "ease-in-out",
-          pseudoElement: next === "dark" ? "::view-transition-new(root)" : "::view-transition-old(root)",
+          pseudoElement: isToDark ? "::view-transition-new(root)" : "::view-transition-old(root)",
         }
       );
+    });
+    
+    transition.finished.then(() => {
+      document.documentElement.classList.remove("theme-transition-to-dark", "theme-transition-to-light");
     });
   }, [theme, onThemeChange]);
 
@@ -284,11 +291,17 @@ export function ThemeToggle({
       animation: none;
       mix-blend-mode: normal;
     }
-    ::view-transition-old(root) {
+    .theme-transition-to-dark::view-transition-old(root) {
       z-index: 1;
     }
-    ::view-transition-new(root) {
+    .theme-transition-to-dark::view-transition-new(root) {
       z-index: 2;
+    }
+    .theme-transition-to-light::view-transition-old(root) {
+      z-index: 2;
+    }
+    .theme-transition-to-light::view-transition-new(root) {
+      z-index: 1;
     }
   `;
 
