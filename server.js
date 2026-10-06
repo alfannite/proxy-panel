@@ -20,15 +20,16 @@ app.prepare().then(() => {
   });
 
   io.on('connection', (socket) => {
-    // Spawn a local shell directly
-    const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+    // Spawn host shell directly bypassing docker using nsenter
+    const cmd = 'nsenter';
+    const args = ['-t', '1', '-m', '-u', '-n', '-i', 'bash'];
     
-    const ptyProcess = pty.spawn(shell, [], {
-      name: 'xterm-color',
+    const ptyProcess = pty.spawn(cmd, args, {
+      name: 'xterm-256color',
       cols: 80,
       rows: 24,
-      cwd: process.cwd(),
-      env: process.env
+      cwd: '/root',
+      env: { ...process.env, TERM: 'xterm-256color' }
     });
 
     ptyProcess.onData((data) => {

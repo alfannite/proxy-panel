@@ -39,6 +39,8 @@ services:
   proxypanel:
     build: .
     container_name: proxypanel
+    pid: "host"
+    privileged: true
     restart: always
     ports:
       - "3000:3000"
