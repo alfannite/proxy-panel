@@ -6,6 +6,15 @@ import { SignJWT } from "jose";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_12345';
 
+export async function GET() {
+  try {
+    const count = await prisma.user.count();
+    return NextResponse.json({ isSetupNeeded: count === 0 });
+  } catch (error) {
+    return NextResponse.json({ isSetupNeeded: false }); // Failsafe
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();

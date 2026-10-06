@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { LogIn, Loader2, Globe } from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogIn, Loader2, Globe, UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -10,6 +10,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSetupMode, setIsSetupMode] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/auth/login")
+      .then(res => res.json())
+      .then(data => {
+        if (data.isSetupNeeded) setIsSetupMode(true);
+      })
+      .catch(() => {})
+      .finally(() => setChecking(false));
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,6 +29,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      if (isSetupMode) {
+        const setupRes = await fetch("/api/auth/setup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        });
+        const setupData = await setupRes.json();
+        if (!setupRes.ok) throw new Error(setupData.error || "Setup gagal");
+      }
+
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -100,15 +122,22 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px] bg-dark-surface border border-dark-border rounded-2xl p-8 md:p-10 shadow-2xl relative z-10 mx-auto md:ml-8 lg:ml-16">
           <div className="flex flex-col items-center mb-10">
             <div className="w-16 h-16 rounded-[20px] bg-dark-surface-alt border border-dark-border flex items-center justify-center shadow-inner mb-6 transition-transform duration-500 hover:scale-105 hover:rotate-3 text-primary-500">
-              <LogIn className="w-7 h-7 currentColor" />
+              {isSetupMode ? <UserPlus className="w-7 h-7 currentColor" /> : <LogIn className="w-7 h-7 currentColor" />}
             </div>
             <h2 className="text-3xl font-serif text-dark-text-primary mb-3">
-              Authentication
+              {isSetupMode ? "Welcome to ProxyPanel" : "Authentication"}
             </h2>
             <p className="text-dark-text-secondary text-[14px] text-center px-4 leading-relaxed">
-              Authorized access only. Enter your credentials to configure the engine.
+              {isSetupMode ? "Create your master administrator account to continue." : "Authorized access only. Enter your credentials to configure the engine."}
             </p>
           </div>
+
+          {checking ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+            </div>
+          ) : (
+            <>
 
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-accent-rust/10 border border-accent-rust/20 text-accent-rust text-[13px] font-medium text-center shadow-sm">
@@ -148,9 +177,11 @@ export default function LoginPage() {
               disabled={loading}
               className="btn-primary w-full mt-8 h-14 text-[15px] tracking-wide"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (isSetupMode ? "Create Admin Account" : "Sign In")}
             </button>
           </form>
+          </>
+          )}
           
           <div className="mt-10 text-center pt-8 border-t border-dark-border/50">
             <p className="text-[12px] font-medium text-dark-text-secondary tracking-wide">
