@@ -24,32 +24,31 @@
 }
 
 :root {
-  /* LIGHT MODE (Glassmorphism) */
-  --theme-bg: #f4f6fb;
-  --theme-surface: rgba(255, 255, 255, 0.4);
-  --theme-surface-hover: rgba(255, 255, 255, 0.7);
-  --theme-border: rgba(255, 255, 255, 0.6);
-  --theme-text-main: #1f2937;
-  --theme-text-muted: #6b7280;
+  /* LIGHT MODE (Soft UI / Minimalist) */
+  --theme-bg: #f8fafc;
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f1f5f9;
+  --theme-border: #e2e8f0;
+  --theme-text-main: #0f172a;
+  --theme-text-muted: #64748b;
   
-  --orb-1: #e9d5ff; /* purple-200 */
-  --orb-2: #bfdbfe; /* blue-200 */
+  --shadow-neumorphic: 8px 8px 16px #e2e8f0, -8px -8px 16px #ffffff;
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 }
 
 :root.dark {
-  /* DARK MODE (Glassmorphism) */
-  --theme-bg: #0b0f19;
-  --theme-surface: rgba(20, 25, 40, 0.4);
-  --theme-surface-hover: rgba(40, 50, 75, 0.5);
+  /* DARK MODE (Magic UI / 21st.dev) */
+  --theme-bg: #030712;
+  --theme-surface: #0b1120;
+  --theme-surface-hover: #111827;
   --theme-border: rgba(255, 255, 255, 0.08);
-  --theme-text-main: #f3f4f6;
-  --theme-text-muted: #9ca3af;
+  --theme-text-main: #f8fafc;
+  --theme-text-muted: #94a3b8;
   
-  --orb-1: #4c1d95; /* purple-900 */
-  --orb-2: #1e3a8a; /* blue-900 */
+  --shadow-neumorphic: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
 }
 
-/* Background Glowing Orbs */
 html {
   background-color: var(--color-bg-base);
   transition: background-color 0.5s ease;
@@ -65,64 +64,42 @@ body {
   min-height: 100vh;
 }
 
-body::before, body::after {
-  content: "";
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(120px);
-  z-index: -1;
-  animation: float 20s infinite ease-in-out alternate;
-  transition: background-color 0.8s ease;
-}
-
-body::before {
-  top: -10%;
-  left: -10%;
-  width: 50vw;
-  height: 50vw;
-  background-color: var(--orb-1);
-}
-
-body::after {
-  bottom: -10%;
-  right: -10%;
-  width: 40vw;
-  height: 40vw;
-  background-color: var(--orb-2);
-  animation-delay: -10s;
-}
-
-@keyframes float {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(5%, 10%) scale(1.1); }
-  100% { transform: translate(-5%, -10%) scale(0.9); }
-}
-
 @layer utilities {
   .solid-panel {
-    @apply bg-surface-base border border-border-base rounded-2xl backdrop-blur-xl shadow-[0_8px_32px_0_rgba(0,0,0,0.05)];
+    @apply bg-surface-base border border-border-base rounded-[24px] shadow-[var(--shadow-neumorphic)];
   }
   .solid-card {
-    @apply bg-surface-base border border-border-base rounded-2xl backdrop-blur-xl transition-all duration-300 shadow-[0_4px_16px_0_rgba(0,0,0,0.03)];
+    @apply bg-surface-base border border-border-base rounded-[24px] transition-all duration-300 shadow-[var(--shadow-neumorphic)];
   }
   .solid-card:hover {
-    @apply bg-surface-hover scale-[1.02] shadow-[0_8px_32px_0_rgba(0,0,0,0.08)];
+    @apply scale-[1.01] bg-surface-hover;
+    transform: translateY(-2px);
   }
   
   .input-field {
-    @apply w-full bg-white/30 dark:bg-black/30 border border-border-base rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all duration-200 text-text-main placeholder-text-muted backdrop-blur-md;
+    @apply w-full bg-theme-bg border border-border-base rounded-[16px] px-4 py-3 text-[15px] focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 transition-all duration-300 text-text-main placeholder-text-muted shadow-[var(--shadow-inner)];
   }
   
   .btn-primary {
-    @apply bg-primary-500/90 hover:bg-primary-600/90 backdrop-blur-md border border-white/20 text-white font-medium py-3 px-6 rounded-xl transition-all duration-300 shadow-[0_4px_15px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2;
+    @apply bg-primary-500 text-white font-medium py-3 px-6 rounded-[16px] transition-all duration-300 shadow-[0_4px_15px_rgba(168,85,247,0.4)] flex items-center justify-center gap-2;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.2), 0px 4px 10px rgba(168, 85, 247, 0.3);
   }
+  .btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: inset 0px 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
   .btn-secondary {
-    @apply bg-surface-hover hover:bg-white/50 dark:hover:bg-white/10 backdrop-blur-md border border-border-base text-text-main font-medium py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_4px_16px_0_rgba(0,0,0,0.02)];
+    @apply bg-surface-base hover:bg-surface-hover border border-border-base text-text-main font-medium py-3 px-6 rounded-[16px] transition-all duration-300 flex items-center justify-center gap-2 shadow-[var(--shadow-neumorphic)];
+  }
+  .btn-secondary:active {
+    transform: scale(0.97);
+    box-shadow: var(--shadow-inner);
   }
 
   /* Tooltip Contextual System */
   .help-tooltip {
-    @apply absolute z-50 bg-surface-base backdrop-blur-xl border border-border-base text-text-main text-[13px] p-3 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] opacity-0 invisible transition-all duration-200 ease-out translate-y-2;
+    @apply absolute z-50 bg-surface-base border border-border-base text-text-main text-[13px] p-3 rounded-[16px] shadow-[var(--shadow-neumorphic)] opacity-0 invisible transition-all duration-200 ease-out translate-y-2;
   }
   .has-tooltip:hover .help-tooltip,
   .has-tooltip:focus-within .help-tooltip {

@@ -362,7 +362,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-transparent font-sans relative">
+    <div className="flex h-screen overflow-hidden bg-bg-base font-sans relative">
 
       {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
@@ -373,7 +373,7 @@ export default function Dashboard() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface-base backdrop-blur-2xl shadow-[4px_0_24px_rgba(0,0,0,0.02)] border-r border-border-base p-6 flex flex-col gap-8 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-surface-base shadow-[var(--shadow-neumorphic)] border-r border-border-base p-6 flex flex-col gap-8 transform transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
 
         <div className="flex items-center gap-3 px-2 mt-2 md:mt-0">
           <div className="w-10 h-10 rounded-xl bg-surface-hover border border-border-base flex items-center justify-center shadow-sm">
@@ -423,7 +423,7 @@ export default function Dashboard() {
         </nav>
 
         {/* Connection Status Checklist */}
-        <div className="mt-auto p-4 rounded-xl bg-surface-hover backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.02)] border border-border-base relative overflow-hidden">
+        <div className="mt-auto p-4 rounded-[24px] bg-surface-base shadow-[var(--shadow-inner)] border border-border-base relative overflow-hidden">
           <div className="flex items-center justify-between mb-3 relative z-10">
             <span className="text-[12px] font-bold text-text-muted uppercase tracking-wider">Connections</span>
             <button
