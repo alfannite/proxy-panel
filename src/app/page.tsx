@@ -1040,7 +1040,7 @@ export default function Dashboard() {
                 Close
               </button>
               <button 
-                onClick={() => { setUiError(null); router.push("/profile"); }} 
+                onClick={() => { setUiError(null); setActivePage('profile'); }} 
                 className="bg-rose-500 hover:bg-rose-600 text-white font-medium rounded-[12px] text-[13px] py-2 px-4 transition-colors shadow-[0_4px_15px_rgba(244,63,94,0.3)] flex items-center justify-center gap-2"
               >
                 Go to Profile
