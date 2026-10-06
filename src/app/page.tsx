@@ -57,8 +57,18 @@ export default function Dashboard() {
   useEffect(() => {
     // Check initial theme from document class
     setIsDark(document.documentElement.classList.contains('dark'));
+    
+    // Initial fetch
     fetchProxies();
     checkConnections();
+
+    // Realtime Polling (every 5 seconds) to auto-update IPs and Status
+    const interval = setInterval(() => {
+      fetchProxies(true);
+      checkConnections();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const toggleTheme = () => {
@@ -71,8 +81,8 @@ export default function Dashboard() {
     }
   };
 
-  const fetchProxies = async () => {
-    setLoading(true);
+  const fetchProxies = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const res = await fetch("/api/proxies", { cache: 'no-store', headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' } });
       const result = await res.json();
@@ -80,7 +90,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -581,7 +591,7 @@ export default function Dashboard() {
                             {proxy.serviceName}
                           </h4>
                           <a href={`https://${proxy.domain}`} target="_blank" rel="noreferrer" className="text-accent-sage font-medium text-[13px] hover:underline flex items-center gap-1.5 mt-0.5 break-all">
-                            {proxy.domain}
+                            https://{proxy.domain}
                             <ExternalLink className="w-3 h-3 flex-shrink-0" />
                           </a>
                         </div>
@@ -658,7 +668,7 @@ export default function Dashboard() {
                         </td>
                         <td className="py-5 px-4 text-accent-sage font-medium">
                           <a href={`https://${proxy.domain}`} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1.5 w-max">
-                            {proxy.domain}
+                            https://{proxy.domain}
                             <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
                           </a>
                         </td>
