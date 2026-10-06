@@ -56,20 +56,6 @@ services:
     networks:
       - proxypanel-net
 
-  prisma-studio:
-    image: node:20
-    container_name: prisma-studio
-    restart: always
-    ports:
-      - "5555:5555"
-    working_dir: /app
-    environment:
-      - DATABASE_URL=file:/app/prisma/data/dev.db
-    volumes:
-      - prisma-data:/app/prisma/data
-    command: sh -c "npm install -g prisma@5.22.0 && npx prisma studio --schema=prisma/schema.prisma --port 5555 --hostname 0.0.0.0"
-    networks:
-      - proxypanel-net
 
 networks:
   proxypanel-net:

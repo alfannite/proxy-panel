@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 echo -e "${GREEN}Starting ProxyPanel Pre-flight Checks...${NC}"
 
 # Define required ports
-REQUIRED_PORTS=(80 443 8080 3000 5555)
+REQUIRED_PORTS=(80 443 8080 3000)
 CONFLICT=false
 
 # Function to check if a port is in use
@@ -49,7 +49,7 @@ if [ "$CONFLICT" = true ]; then
     echo -e "${RED}STARTUP ABORTED!${NC}"
     echo -e "${YELLOW}One or more required ports are currently in use by another application.${NC}"
     echo -e "${YELLOW}ProxyPanel requires ports 80 (HTTP), 443 (HTTPS), 8080 (Traefik UI),${NC}"
-    echo -e "${YELLOW}3000 (Panel), and 5555 (Prisma Studio) to be entirely free.${NC}"
+    echo -e "${YELLOW}3000 (Panel) to be entirely free.${NC}"
     echo -e "${YELLOW}Please stop the conflicting services (e.g., Apache, Nginx) and try again.${NC}"
     echo -e "${RED}========================================================================${NC}\n"
     exit 1
