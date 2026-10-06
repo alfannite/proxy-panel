@@ -362,7 +362,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-bg-base font-sans relative">
+    <div className="flex h-screen overflow-hidden bg-bg-base font-sans relative">
 
       {/* Mobile Sidebar Backdrop */}
       {isSidebarOpen && (
@@ -451,7 +451,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-12 w-full min-w-0">
+      <main className="flex-1 p-6 md:p-12 w-full min-w-0 overflow-y-auto">
         <div className="md:hidden flex items-center justify-between mb-8 pb-4 border-b border-border-base">
           <div className="flex items-center gap-2">
             <Globe className="w-6 h-6 text-primary-500" />
