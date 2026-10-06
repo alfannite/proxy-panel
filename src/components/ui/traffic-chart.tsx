@@ -1,15 +1,34 @@
+"use client";
+
 import React, { useEffect, useState, useRef } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Activity, Cpu, HardDrive } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { io } from 'socket.io-client';
 
 type TimeRange = '1h' | '24h' | '10d' | '30d';
 
+interface MetricData {
+  time: string;
+  rps: number;
+}
+
 export function TrafficChart() {
-  const [range, setRange] = useState<TimeRange>('1h');
-  const [dataPoints, setDataPoints] = useState<number[]>([]);
+  const [range, setRange] = useState<TimeRange>('24h');
   const [totalRequests, setTotalRequests] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [liveData, setLiveData] = useState<MetricData[]>([]);
+  const [currentMetrics, setCurrentMetrics] = useState({ rps: 0, cpu: 0, ram: 0 });
+
+  useEffect(() => {
+    const initialData = Array.from({ length: 30 }).map(() => ({
+      time: '',
+      rps: 0
+    }));
+    setLiveData(initialData);
+  }, []);
 
   const fetchMetrics = async (selectedRange: TimeRange, silent = false) => {
     if (!silent) setLoading(true);
@@ -18,7 +37,6 @@ export function TrafficChart() {
       if (res.ok) {
         const data = await res.json();
         setTotalRequests(data.total);
-        setDataPoints(data.data);
       }
     } catch (e) {
       console.error(e);
@@ -29,11 +47,27 @@ export function TrafficChart() {
 
   useEffect(() => {
     fetchMetrics(range);
-    
-    // Poll every 15 seconds to update real-time graph
-    const interval = setInterval(() => fetchMetrics(range, true), 15000);
-    return () => clearInterval(interval);
   }, [range]);
+
+  useEffect(() => {
+    const socket = io({ path: "/api/terminal-socket" });
+
+    socket.on('system_metrics', (data) => {
+      setCurrentMetrics({ rps: data.rps, cpu: data.cpu, ram: data.ram });
+      
+      const timeStr = new Date(data.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      
+      setLiveData(prev => {
+        const newData = [...prev, { time: timeStr, rps: data.rps }];
+        if (newData.length > 30) newData.shift();
+        return newData;
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -44,23 +78,6 @@ export function TrafficChart() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const maxVal = Math.max(...dataPoints, 100); // minimum scale
-  const minVal = 0;
-
-  // Generate SVG path
-  const width = 400;
-  const height = 120;
-  const dx = width / Math.max(dataPoints.length - 1, 1);
-  
-  const points = dataPoints.length > 0 ? dataPoints.map((val, i) => {
-    const x = i * dx;
-    const y = height - ((val - minVal) / (maxVal - minVal)) * height;
-    return `${x},${y}`;
-  }) : [`0,${height}`, `${width},${height}`];
-
-  const pathD = `M0,${height} L${points.join(' L')} L${width},${height} Z`;
-  const lineD = `M${points.join(' L')}`;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
@@ -75,75 +92,117 @@ export function TrafficChart() {
     '30d': 'Last 30 Days'
   };
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-surface-base border border-border-base p-3 rounded-lg shadow-xl">
+          <p className="text-text-muted text-xs mb-1 font-mono">{label}</p>
+          <p className="text-primary-500 font-bold flex items-center gap-2">
+            <Activity className="w-3 h-3" />
+            {payload[0].value} Req/s
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="w-full h-full flex flex-col relative overflow-hidden group rounded-2xl border border-border-base bg-surface-base shadow-sm">
+    <div className="w-full h-full flex flex-col relative overflow-hidden group rounded-2xl border border-border-base bg-surface-base shadow-sm animate-fadeIn">
       {/* Header Info */}
-      <div className="px-5 pt-5 pb-2 relative z-10 flex flex-col gap-1">
-        <div className="flex justify-between items-center w-full">
-          <p className="text-[13px] text-text-muted font-medium">Total requests • {rangeLabels[range]}</p>
-          
-          <div className="relative" ref={dropdownRef}>
-            <div 
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="text-text-muted hover:text-text-main cursor-pointer tracking-widest leading-none font-bold pb-2"
-            >
-              ...
+      <div className="px-5 pt-5 pb-2 relative z-10 flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3 w-full">
+                <p className="text-[13px] text-text-muted font-medium">Total requests • {rangeLabels[range]}</p>
+                <div className="relative" ref={dropdownRef}>
+                    <div 
+                        onClick={() => setDropdownOpen(!dropdownOpen)}
+                        className="text-text-muted hover:text-text-main cursor-pointer tracking-widest leading-none font-bold pb-2"
+                    >
+                    ...
+                    </div>
+                    {dropdownOpen && (
+                        <div className="absolute left-0 top-full mt-1 w-36 bg-surface-base border border-border-base rounded-lg shadow-lg z-50 overflow-hidden text-sm">
+                        {(Object.keys(rangeLabels) as TimeRange[]).map((r) => (
+                            <button
+                            key={r}
+                            onClick={() => { setRange(r); setDropdownOpen(false); }}
+                            className={`w-full text-left px-4 py-2 hover:bg-surface-hover ${range === r ? 'text-primary-500 font-medium' : 'text-text-main'}`}
+                            >
+                            {rangeLabels[r]}
+                            </button>
+                        ))}
+                        </div>
+                    )}
+                </div>
             </div>
             
-            {dropdownOpen && (
-              <div className="absolute right-0 top-full mt-1 w-36 bg-surface-base border border-border-base rounded-lg shadow-lg z-50 overflow-hidden text-sm">
-                {(Object.keys(rangeLabels) as TimeRange[]).map((r) => (
-                  <button
-                    key={r}
-                    onClick={() => { setRange(r); setDropdownOpen(false); }}
-                    className={`w-full text-left px-4 py-2 hover:bg-surface-hover ${range === r ? 'text-primary-500 font-medium' : 'text-text-main'}`}
-                  >
-                    {rangeLabels[r]}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+            <div className="flex items-baseline gap-3 min-h-[36px]">
+                {loading && totalRequests === null ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
+                ) : (
+                    <h3 className="text-3xl font-bold text-text-main tracking-tight">
+                    {totalRequests !== null ? formatNumber(totalRequests) : '0'}
+                    </h3>
+                )}
+            </div>
         </div>
-        
-        <div className="flex items-baseline gap-3 min-h-[36px]">
-          {loading && totalRequests === null ? (
-            <Loader2 className="w-6 h-6 animate-spin text-text-muted" />
-          ) : (
-            <>
-              <h3 className="text-3xl font-bold text-text-main tracking-tight">
-                {totalRequests !== null ? formatNumber(totalRequests) : '0'}
-              </h3>
-              {/* Note: Cloudflare shows percentage compared to previous period, we just hide it if we don't calculate it */}
-              <span className="text-[13px] font-medium text-emerald-500 flex items-center gap-0.5 opacity-0">
-                0%
-              </span>
-            </>
-          )}
+
+        {/* Realtime Badges */}
+        <div className="flex gap-4 items-center mb-2 md:mb-0">
+            <div className="flex flex-col items-end">
+                <span className="text-[10px] text-text-muted font-bold tracking-wider uppercase flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                    Live Traffic
+                </span>
+                <span className="text-xl font-bold text-primary-500 font-mono">
+                    {currentMetrics.rps} <span className="text-xs text-text-muted font-sans font-normal">req/s</span>
+                </span>
+            </div>
+            <div className="w-[1px] h-8 bg-border-base"></div>
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
+                    <Cpu className="w-3 h-3 text-accent-sage" /> CPU: {currentMetrics.cpu}%
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
+                    <HardDrive className="w-3 h-3 text-accent-rust" /> RAM: {currentMetrics.ram}%
+                </div>
+            </div>
         </div>
       </div>
 
       {/* SVG Chart Area */}
-      <div className="relative flex-grow mt-2 min-h-[120px] w-full">
-        {/* Y Axis grid lines & labels */}
-        <div className="absolute inset-0 flex flex-col justify-between pt-2 pb-0 px-5 pointer-events-none z-0">
-          {[maxVal, Math.floor(maxVal * 0.66), Math.floor(maxVal * 0.33), 0].map((val, i) => (
-            <div key={i} className="flex justify-between items-center w-full h-[1px] bg-border-base/40">
-              <span className="text-[10px] text-text-muted/60 bg-surface-base pr-2 translate-y-[-50%] absolute right-4">{val}</span>
-            </div>
-          ))}
-        </div>
-
-        <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="absolute bottom-0 z-10">
-          <defs>
-            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-primary-500)" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="var(--color-primary-500)" stopOpacity="0.0" />
-            </linearGradient>
-          </defs>
-          <path d={pathD} fill="url(#chartGradient)" />
-          <path d={lineD} fill="none" stroke="var(--color-primary-500)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-        </svg>
+      <div className="relative flex-grow mt-2 min-h-[140px] w-full px-2 pb-2">
+        <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={liveData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                    <linearGradient id="colorRps" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--color-primary-500)" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="var(--color-primary-500)" stopOpacity={0}/>
+                    </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border-base)" opacity={0.4} />
+                <XAxis 
+                    dataKey="time" 
+                    hide={true} 
+                />
+                <YAxis 
+                    domain={['auto', 'auto']} 
+                    hide={true}
+                    padding={{ top: 20, bottom: 0 }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--color-border-base)', strokeWidth: 1, strokeDasharray: '4 4' }} />
+                <Area 
+                    type="monotone" 
+                    dataKey="rps" 
+                    stroke="var(--color-primary-500)" 
+                    strokeWidth={2}
+                    fillOpacity={1} 
+                    fill="url(#colorRps)" 
+                    isAnimationActive={false}
+                />
+            </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

@@ -58,4 +58,75 @@ app.prepare().then(() => {
     if (err) throw err;
     console.log(`> Ready on http://localhost:${PORT}`);
   });
+
+  // --- Real-time Metrics Stream ---
+  const http = require('http');
+  let lastTotalRequests = null;
+
+  function fetchTraefikMetrics() {
+    return new Promise((resolve) => {
+      http.get('http://traefik-core:8080/metrics', (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => resolve(data));
+      }).on('error', () => resolve(null));
+    });
+  }
+
+  function getCpuUsage() {
+    const cpus = os.cpus();
+    let user = 0, nice = 0, sys = 0, idle = 0, irq = 0;
+    for (let cpu in cpus) {
+      user += cpus[cpu].times.user;
+      nice += cpus[cpu].times.nice;
+      sys += cpus[cpu].times.sys;
+      irq += cpus[cpu].times.irq;
+      idle += cpus[cpu].times.idle;
+    }
+    const total = user + nice + sys + idle + irq;
+    return { total, idle };
+  }
+
+  let lastCpu = getCpuUsage();
+
+  setInterval(async () => {
+    const metricsTxt = await fetchTraefikMetrics();
+    let rps = 0;
+    
+    if (metricsTxt) {
+      let totalRequests = 0;
+      const lines = metricsTxt.split('\n');
+      for (const line of lines) {
+        if (line.startsWith('traefik_entrypoint_requests_total{')) {
+          const parts = line.split(' ');
+          if (parts.length === 2) {
+            totalRequests += parseInt(parts[1], 10);
+          }
+        }
+      }
+      
+      if (lastTotalRequests !== null && totalRequests >= lastTotalRequests) {
+        rps = (totalRequests - lastTotalRequests) / 2; // calculated over 2s interval
+      } else if (lastTotalRequests !== null && totalRequests < lastTotalRequests) {
+        lastTotalRequests = totalRequests;
+      }
+      lastTotalRequests = totalRequests;
+    }
+
+    const currentCpu = getCpuUsage();
+    const idleDiff = currentCpu.idle - lastCpu.idle;
+    const totalDiff = currentCpu.total - lastCpu.total;
+    const cpuPercent = totalDiff === 0 ? 0 : 100 - ~~(100 * idleDiff / totalDiff);
+    lastCpu = currentCpu;
+
+    const ramPercent = Math.round(((os.totalmem() - os.freemem()) / os.totalmem()) * 100);
+    
+    io.emit('system_metrics', {
+      rps: Math.max(0, Math.round(rps)),
+      cpu: cpuPercent,
+      ram: ramPercent,
+      timestamp: Date.now()
+    });
+  }, 2000);
+
 });
