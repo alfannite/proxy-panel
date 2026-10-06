@@ -10,6 +10,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/Modal";
 import { ThemeToggle } from "@/components/ui/curtain-theme-toggle";
+import { TrafficChart } from "@/components/ui/traffic-chart";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -529,8 +530,8 @@ export default function Dashboard() {
         </header>
 
         {/* Stats */}
-        <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <article className="solid-card p-6 flex flex-col gap-4">
+        <section aria-label="Dashboard Statistics" className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <article className="solid-card p-6 flex flex-col gap-4 col-span-1">
             <div className="w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center">
               <Globe className="w-6 h-6 text-primary-500" />
             </div>
@@ -540,20 +541,11 @@ export default function Dashboard() {
             </div>
           </article>
           
-          <article className="solid-card p-6 flex flex-col gap-4 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-            
-            <div className="w-12 h-12 rounded-xl bg-surface-base border border-primary-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(201,125,60,0.15)] relative z-10">
-              <Activity className="w-7 h-7 text-primary-500 animate-[pulse_1.5s_ease-in-out_infinite] drop-shadow-[0_0_8px_rgba(201,125,60,0.6)]" />
-            </div>
-            <div className="relative z-10">
-              <p className={`text-4xl font-serif mb-1 tracking-tight ${traefikConnected ? 'text-text-main drop-shadow-sm' : 'text-accent-rust'}`}>
-                {traefikConnected ? (totalRequests !== null ? totalRequests.toLocaleString() : "...") : "Err"}
-              </p>
-              <p className="text-[13px] text-text-muted font-medium uppercase tracking-wide">Traffic Requests</p>
-            </div>
-          </article>
-          <article className="solid-card p-6 flex flex-col gap-4">
+          <div className="col-span-1 md:col-span-2 min-h-[160px] h-full">
+            <TrafficChart currentTotal={totalRequests} />
+          </div>
+
+          <article className="solid-card p-6 flex flex-col gap-4 col-span-1">
             <div className={`w-12 h-12 rounded-xl bg-bg-base border border-border-base flex items-center justify-center ${traefikConnected && cfConnected ? 'animate-pulse' : ''}`}>
               <Zap className={`w-6 h-6 ${traefikConnected && cfConnected ? 'text-primary-500' : 'text-accent-rust'}`} />
             </div>
