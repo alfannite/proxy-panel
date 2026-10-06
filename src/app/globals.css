@@ -3,12 +3,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #F3E8FF;
-  --color-primary-100: #E9D5FF;
-  --color-primary-300: #D8B4FE;
-  --color-primary-500: #A855F7;
-  --color-primary-600: #9333EA;
-  --color-primary-700: #7E22CE;
+  --color-primary-50: #f5f3ff;
+  --color-primary-100: #ede9fe;
+  --color-primary-300: #c4b5fd;
+  --color-primary-500: #a78bfa; /* softer, less intense purple */
+  --color-primary-600: #8b5cf6;
+  --color-primary-700: #7c3aed;
 
   --color-accent-sage: #8A9A7E;
   --color-accent-rust: #B5593E;
@@ -37,13 +37,13 @@
 }
 
 :root.dark {
-  /* DARK MODE (Magic UI / 21st.dev) */
-  --theme-bg: #030712;
-  --theme-surface: #0b1120;
-  --theme-surface-hover: #111827;
+  /* DARK MODE (Magic UI / Flat Neutral) */
+  --theme-bg: #121212;
+  --theme-surface: #1e1e1e;
+  --theme-surface-hover: #2a2a2a;
   --theme-border: rgba(255, 255, 255, 0.08);
-  --theme-text-main: #f8fafc;
-  --theme-text-muted: #94a3b8;
+  --theme-text-main: #f4f4f5;
+  --theme-text-muted: #a1a1aa;
   
   --shadow-neumorphic: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 20px -2px rgba(0, 0, 0, 0.5);
   --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
