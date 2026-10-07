@@ -61,7 +61,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-900 flex flex-col md:flex-row overflow-hidden font-sans relative">
+    <div className="min-h-screen bg-surface-base flex flex-col md:flex-row overflow-hidden font-sans relative">
       
       {/* KIRI: Hologram Globe & Background Texture */}
       <div className="absolute inset-0 md:relative md:flex-1 flex items-center justify-center overflow-hidden z-0">
@@ -72,7 +72,7 @@ export default function LoginPage() {
           <div className="w-8 h-8 flex items-center justify-center">
             <Globe className="w-7 h-7 text-primary-500 opacity-90 drop-shadow-md" />
           </div>
-          <h1 className="text-2xl font-serif font-bold tracking-widest uppercase text-neutral-0 drop-shadow-md" style={{ letterSpacing: '0.15em' }}>
+          <h1 className="text-2xl font-serif font-bold tracking-widest uppercase text-text-main drop-shadow-md" style={{ letterSpacing: '0.15em' }}>
             ProxyPanel
           </h1>
         </div>
@@ -91,21 +91,21 @@ export default function LoginPage() {
           <div className="absolute w-[450px] h-[450px] rounded-full border border-primary-500/10 -rotate-45 scale-y-50" />
           <div className="absolute w-[450px] h-[450px] rounded-full border border-primary-500/10 scale-x-50" />
           
-          <Globe className="w-[300px] h-[300px] text-primary-500/30 drop-shadow-[0_0_15px_rgba(201,125,60,0.4)]" strokeWidth={0.5} />
+          <Globe className="w-[300px] h-[300px] text-primary-500/30 drop-shadow-[0_0_15px_rgba(139,92,246,0.4)]" strokeWidth={0.5} />
           
-          <div className="absolute top-[20%] left-[30%] w-1.5 h-1.5 rounded-full bg-primary-100 animate-pulse drop-shadow-[0_0_5px_#FDF6ED]" style={{ animationDuration: '3s' }} />
-          <div className="absolute top-[60%] right-[25%] w-1.5 h-1.5 rounded-full bg-primary-300 animate-pulse drop-shadow-[0_0_5px_#EAB876]" style={{ animationDuration: '4s' }} />
-          <div className="absolute bottom-[30%] left-[40%] w-2 h-2 rounded-full bg-primary-500 animate-pulse drop-shadow-[0_0_5px_#C97D3C]" style={{ animationDuration: '2.5s' }} />
+          <div className="absolute top-[20%] left-[30%] w-1.5 h-1.5 rounded-full bg-primary-100 animate-pulse drop-shadow-[0_0_5px_#E2D4F8]" style={{ animationDuration: '3s' }} />
+          <div className="absolute top-[60%] right-[25%] w-1.5 h-1.5 rounded-full bg-primary-300 animate-pulse drop-shadow-[0_0_5px_#C4B5FD]" style={{ animationDuration: '4s' }} />
+          <div className="absolute bottom-[30%] left-[40%] w-2 h-2 rounded-full bg-primary-500 animate-pulse drop-shadow-[0_0_5px_#8B5CF6]" style={{ animationDuration: '2.5s' }} />
         </div>
       </div>
 
       {/* KANAN: Form Login dengan Efek Kertas Super Miring (Blurred Glass) */}
-      <div className="w-full md:w-[550px] lg:w-[650px] bg-dark-bg/80 backdrop-blur-md flex items-center justify-center p-8 lg:p-12 z-20 relative shadow-[-30px_0_60px_rgba(0,0,0,0.8)]">
+      <div className="w-full md:w-[550px] lg:w-[650px] bg-surface-base/80 backdrop-blur-md flex items-center justify-center p-8 lg:p-12 z-20 relative shadow-[-30px_0_60px_rgba(0,0,0,0.8)]">
         
         {/* Dekorasi Potongan Kertas Super Miring yang Menonjol Keluar (Blurred Glass Tipis) */}
         {/* Segitiga besar dari atas kanan menyudut tajam ke bawah kiri */}
         <div 
-          className="hidden md:block absolute top-0 bottom-0 left-[-200px] w-[201px] bg-dark-bg/80 backdrop-blur-md z-[-1]" 
+          className="hidden md:block absolute top-0 bottom-0 left-[-200px] w-[201px] bg-surface-base/80 backdrop-blur-md z-[-1]" 
           style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }} 
         />
         {/* Fake Shadow untuk ngasih kesan 3D menonjol */}
@@ -119,15 +119,15 @@ export default function LoginPage() {
           style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%, 1px 100%, 100% 1px)' }} 
         />
 
-        <div className="w-full max-w-[400px] bg-dark-surface border border-dark-border rounded-2xl p-8 md:p-10 shadow-2xl relative z-10 mx-auto md:ml-8 lg:ml-16">
+        <div className="w-full max-w-[400px] bg-surface-base border border-border-base rounded-2xl p-8 md:p-10 shadow-2xl relative z-10 mx-auto md:ml-8 lg:ml-16">
           <div className="flex flex-col items-center mb-10">
-            <div className="w-16 h-16 rounded-[20px] bg-dark-surface-alt border border-dark-border flex items-center justify-center shadow-inner mb-6 transition-transform duration-500 hover:scale-105 hover:rotate-3 text-primary-500">
+            <div className="w-16 h-16 rounded-[20px] bg-surface-hover border border-border-base flex items-center justify-center shadow-inner mb-6 transition-transform duration-500 hover:scale-105 hover:rotate-3 text-primary-500">
               {isSetupMode ? <UserPlus className="w-7 h-7 currentColor" /> : <LogIn className="w-7 h-7 currentColor" />}
             </div>
-            <h2 className="text-3xl font-serif text-dark-text-primary mb-3">
+            <h2 className="text-3xl font-serif text-text-main mb-3">
               {isSetupMode ? "Welcome to ProxyPanel" : "Authentication"}
             </h2>
-            <p className="text-dark-text-secondary text-[14px] text-center px-4 leading-relaxed">
+            <p className="text-text-muted text-[14px] text-center px-4 leading-relaxed">
               {isSetupMode ? "Create your master administrator account to continue." : "Authorized access only. Enter your credentials to configure the engine."}
             </p>
           </div>
@@ -147,7 +147,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-[12px] font-bold text-dark-text-secondary uppercase tracking-[0.1em]">Username</label>
+              <label className="text-[12px] font-bold text-text-muted uppercase tracking-[0.1em]">Username</label>
               <input 
                 type="text" 
                 value={username}
@@ -160,7 +160,7 @@ export default function LoginPage() {
             
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="text-[12px] font-bold text-dark-text-secondary uppercase tracking-[0.1em]">Password</label>
+                <label className="text-[12px] font-bold text-text-muted uppercase tracking-[0.1em]">Password</label>
               </div>
               <input 
                 type="password" 
@@ -183,8 +183,8 @@ export default function LoginPage() {
           </>
           )}
           
-          <div className="mt-10 text-center pt-8 border-t border-dark-border/50">
-            <p className="text-[12px] font-medium text-dark-text-secondary tracking-wide">
+          <div className="mt-10 text-center pt-8 border-t border-border-base/50">
+            <p className="text-[12px] font-medium text-text-muted tracking-wide">
               ProxyPanel | FanOps &copy; {new Date().getFullYear()}
             </p>
           </div>
