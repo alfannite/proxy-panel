@@ -142,9 +142,27 @@ export async function POST(request: Request) {
           if (k && v) envMap[k] = v.join('=');
         });
 
-        // Update
-        if (key === "CF_API_TOKEN") envMap["CF_DNS_API_TOKEN"] = String(value);
-        if (key === "CF_EMAIL") envMap["CF_EMAIL"] = String(value);
+        // Update intelligently based on token format
+        if (key === "CF_API_TOKEN") {
+          const tokenStr = String(value);
+          const isGlobalKey = /^[a-f0-9]{37}$/i.test(tokenStr);
+          if (isGlobalKey) {
+            envMap["CF_API_KEY"] = tokenStr;
+            // Ensure CF_API_EMAIL is also mapped when CF_EMAIL is already set
+            if (envMap["CF_EMAIL"]) envMap["CF_API_EMAIL"] = envMap["CF_EMAIL"];
+            delete envMap["CF_DNS_API_TOKEN"]; // clear wrong env
+          } else {
+            envMap["CF_DNS_API_TOKEN"] = tokenStr;
+            delete envMap["CF_API_KEY"];
+            delete envMap["CF_API_EMAIL"];
+          }
+        }
+        if (key === "CF_EMAIL") {
+          const emailStr = String(value);
+          envMap["CF_EMAIL"] = emailStr;
+          // If we have a Global API Key, we must also set CF_API_EMAIL
+          if (envMap["CF_API_KEY"]) envMap["CF_API_EMAIL"] = emailStr;
+        }
 
         // Save
         const newEnv = Object.entries(envMap).map(([k, v]) => `${k}=${v}`).join('\n') + '\n';

@@ -415,10 +415,8 @@ export async function POST(req: Request) {
       dnsResult = await addCloudflareDNSRecord(zoneId, subdomain, rootDomain, dnsIp, proxied ?? false);
     }
 
-    // Auto-sync Traefik asynchronously
-    restartTraefik().then((success) => {
-      if (success) console.log(`[Traefik] Auto-synced config for ${fileName}`);
-    });
+    // Traefik automatically watches the directory, no restart needed.
+    console.log(`[Traefik] Auto-synced config for ${fileName}`);
 
     return NextResponse.json({ 
       success: true, 
@@ -477,10 +475,8 @@ export async function DELETE(req: Request) {
     fs.unlinkSync(filePath);
     console.log(`[Traefik] Rule file deleted: ${safeFilename}`);
 
-    // Auto-sync Traefik asynchronously
-    restartTraefik().then((success) => {
-      if (success) console.log(`[Traefik] Auto-synced config deletion for ${safeFilename}`);
-    });
+    // Traefik automatically watches the directory, no restart needed.
+    console.log(`[Traefik] Auto-synced config deletion for ${safeFilename}`);
 
     return NextResponse.json({ 
       success: true, 
@@ -687,10 +683,8 @@ export async function PUT(req: Request) {
       }
     }
 
-    // Auto-sync Traefik asynchronously
-    restartTraefik().then((success) => {
-      if (success) console.log(`[Traefik] Auto-synced updated config for ${safeFilename}`);
-    });
+    // Traefik automatically watches the directory, no restart needed.
+    console.log(`[Traefik] Auto-synced updated config for ${safeFilename}`);
 
     return NextResponse.json({ 
       success: true, 
@@ -741,10 +735,8 @@ export async function PATCH(req: Request) {
 
     console.log(`[Traefik] Proxy ${action === 'stop' ? 'disabled' : 'enabled'}: ${newFilename}`);
 
-    // Auto-sync Traefik asynchronously
-    restartTraefik().then((success) => {
-      if (success) console.log(`[Traefik] Auto-synced status change for ${newFilename}`);
-    });
+    // Traefik automatically watches the directory, no restart needed.
+    console.log(`[Traefik] Auto-synced status change for ${newFilename}`);
 
     return NextResponse.json({ 
       success: true, 
