@@ -70,24 +70,19 @@ export function ProfileView({ onBack }: { onBack?: () => void }) {
     setMessage({ text: "", type: "" });
 
     try {
-      const resEmail = await fetch("/api/settings", {
+      const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "CF_EMAIL", value: cfEmail }),
+        body: JSON.stringify([
+          { key: "CF_EMAIL", value: cfEmail },
+          { key: "CF_API_TOKEN", value: cfToken }
+        ]),
       });
-      const dataEmail = await resEmail.json();
-      if (!resEmail.ok) throw new Error(dataEmail.error || "Failed");
-      
-      const resToken = await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "CF_API_TOKEN", value: cfToken }),
-      });
-      const dataToken = await resToken.json();
-      if (!resToken.ok) throw new Error(dataToken.error || "Failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save settings");
 
-      if (dataEmail.warning || dataToken.warning) {
-        setMessage({ text: `Credentials saved securely! Note: ${dataEmail.warning || dataToken.warning}`, type: "success" });
+      if (data.warning) {
+        setMessage({ text: `Credentials saved securely! Note: ${data.warning}`, type: "success" });
       } else {
         setMessage({ text: "Credential saved successfully", type: "success" });
       }
