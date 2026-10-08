@@ -534,32 +534,39 @@ export async function PUT(req: Request) {
       return NextResponse.json({ success: false, error: "Rule file not found" }, { status: 404 });
     }
 
-    // Generate Traefik YAML for the updated rule
-    const newProxyConfig = {
-      http: {
-        routers: {
-          [safeServiceName]: {
-            rule: `Host(\`${fullDomain}\`)`,
-            entryPoints: ["websecure"],
-            tls: {
-              certResolver: "cloudflare"
-            },
-            service: `${safeServiceName}-svc`
-          }
-        },
-        services: {
-          [`${safeServiceName}-svc`]: {
-            loadBalancer: {
-              servers: [
-                { url: `http://${targetIp}:${targetPort}` }
-              ]
-            }
-          }
-        }
-      }
-    };
+    // Read existing Traefik YAML to avoid overwriting custom configurations
+    const existingYamlStr = fs.readFileSync(filePath, 'utf8');
+    const existingConfig = yaml.parse(existingYamlStr) || {};
 
-    const yamlStr = yaml.stringify(newProxyConfig);
+    // Update the domain in routers
+    if (existingConfig.http?.routers?.[safeServiceName]) {
+      existingConfig.http.routers[safeServiceName].rule = `Host(\`${fullDomain}\`)`;
+    } else {
+      // If router doesn't exist for some reason, create it
+      if (!existingConfig.http) existingConfig.http = {};
+      if (!existingConfig.http.routers) existingConfig.http.routers = {};
+      existingConfig.http.routers[safeServiceName] = {
+        rule: `Host(\`${fullDomain}\`)`,
+        entryPoints: ["websecure"],
+        tls: { certResolver: "cloudflare" },
+        service: `${safeServiceName}-svc`
+      };
+    }
+
+    // Update the target URL in services
+    if (existingConfig.http?.services?.[`${safeServiceName}-svc`]?.loadBalancer?.servers) {
+       existingConfig.http.services[`${safeServiceName}-svc`].loadBalancer.servers[0].url = `http://${targetIp}:${targetPort}`;
+    } else {
+       if (!existingConfig.http) existingConfig.http = {};
+       if (!existingConfig.http.services) existingConfig.http.services = {};
+       existingConfig.http.services[`${safeServiceName}-svc`] = {
+         loadBalancer: {
+           servers: [ { url: `http://${targetIp}:${targetPort}` } ]
+         }
+       };
+    }
+
+    const yamlStr = yaml.stringify(existingConfig);
     // Write dynamically - Traefik watches this directory and updates without downtime!
     fs.writeFileSync(filePath, yamlStr, 'utf8');
     console.log(`[Traefik] Rule file updated dynamically: ${safeFilename}`);
@@ -572,12 +579,12 @@ export async function PUT(req: Request) {
 
     if (auth && dnsIp) {
       let activeDnsIp = dnsIp;
+      const searchDomain = oldDomain || fullDomain; // We search for the original domain to find the existing record
+      let targetZoneId = (await findZoneForDomain(searchDomain, auth.headers))?.zoneId;
+      let newZoneId = zoneId || (await findZoneForDomain(fullDomain, auth.headers))?.zoneId;
 
       // If the IP is masked (e.g., 104.*.*.24), we need to fetch the real IP from Cloudflare
       if (activeDnsIp.includes('*')) {
-        const searchDomain = oldDomain || fullDomain;
-        const targetZoneId = zoneId || (await findZoneForDomain(searchDomain, auth.headers))?.zoneId;
-        
         if (targetZoneId) {
           try {
             const listRes = await fetch(
@@ -597,89 +604,61 @@ export async function PUT(req: Request) {
 
       const domainChanged = oldDomain && oldDomain !== fullDomain;
 
-      if (domainChanged) {
-        // CASE 1: Domain changed (e.g., subdomain or root domain changed)
-        // → Delete old DNS record, then create new one
-        console.log(`[Cloudflare] Domain changed: ${oldDomain} → ${fullDomain}`);
-
-        // Delete old DNS record
-        const deleteResult = await deleteCloudflareDNSRecord(oldDomain);
-        if (deleteResult.success) {
-          console.log(`[Cloudflare] Old DNS record for ${oldDomain} deleted`);
-        } else {
-          console.warn(`[Cloudflare] Could not delete old DNS for ${oldDomain}: ${deleteResult.error}`);
-        }
-
-        // Create new DNS record
-        if (zoneId) {
-          dnsResult = await addCloudflareDNSRecord(
-            zoneId, 
-            subdomain || fullDomain.replace(`.${rootDomain}`, ''), 
-            rootDomain || '', 
-            activeDnsIp, 
-            proxied ?? false
-          );
-          if (dnsResult.success) {
-            dnsResult.action = "replaced";
-            console.log(`[Cloudflare] New DNS record created for ${fullDomain}`);
-          }
-        } else {
-          // No zoneId provided, try auto-detect
-          const zoneInfo = await findZoneForDomain(fullDomain, auth.headers);
-          if (zoneInfo) {
-            const sub = fullDomain === zoneInfo.zoneName ? '@' : fullDomain.replace(`.${zoneInfo.zoneName}`, '');
-            dnsResult = await addCloudflareDNSRecord(zoneInfo.zoneId, sub, zoneInfo.zoneName, activeDnsIp, proxied ?? false);
-            if (dnsResult.success) dnsResult.action = "replaced";
-          } else {
-            dnsResult = { success: false, error: "Could not find zone for new domain" };
-          }
-        }
+      // If the domain changed to a DIFFERENT zone, we have to delete and create, because a record can't be moved between zones via PUT.
+      if (domainChanged && targetZoneId && newZoneId && targetZoneId !== newZoneId) {
+         // Different zone: Delete old, Create new
+         console.log(`[Cloudflare] Domain changed to a different zone: ${oldDomain} → ${fullDomain}`);
+         await deleteCloudflareDNSRecord(oldDomain);
+         const sub = subdomain || (rootDomain ? fullDomain.replace(`.${rootDomain}`, '') : fullDomain);
+         dnsResult = await addCloudflareDNSRecord(newZoneId, sub, rootDomain || '', activeDnsIp, proxied ?? false);
+         if (dnsResult.success) dnsResult.action = "replaced";
       } else {
-        // CASE 2: Same domain, but IP or proxied status might have changed
-        // → Find existing record and update it
-        const targetZoneId = zoneId || (await findZoneForDomain(fullDomain, auth.headers))?.zoneId;
-
-        if (targetZoneId) {
-          const listRes = await fetch(
-            `https://api.cloudflare.com/client/v4/zones/${targetZoneId}/dns_records?name=${fullDomain}&type=A`,
-            { headers: auth.headers, cache: 'no-store' }
-          );
-          const listData = await listRes.json();
-
-          if (listData.success && listData.result && listData.result.length > 0) {
-            const recordId = listData.result[0].id;
-            const updateRes = await fetch(
-              `https://api.cloudflare.com/client/v4/zones/${targetZoneId}/dns_records/${recordId}`,
-              {
-                method: "PUT",
-                headers: auth.headers,
-                body: JSON.stringify({
-                  type: "A",
-                  name: fullDomain,
-                  content: activeDnsIp,
-                  ttl: 1,
-                  proxied: proxied ?? false
-                })
-              }
-            );
-            const updateData = await updateRes.json();
-            if (updateData.success) {
-              dnsResult = { success: true, action: "updated" };
-              console.log(`[Cloudflare] DNS record updated: ${fullDomain} → ${activeDnsIp}`);
-            } else {
-              console.error(`[Cloudflare] Failed to update DNS: ${JSON.stringify(updateData.errors)}`);
-              dnsResult = { success: false, error: updateData.errors?.[0]?.message || "Failed to update DNS" };
-            }
-          } else {
-            // Record not found, create new
-            const sub = subdomain || (rootDomain ? fullDomain.replace(`.${rootDomain}`, '') : fullDomain);
-            dnsResult = await addCloudflareDNSRecord(targetZoneId, sub, rootDomain || '', activeDnsIp, proxied ?? false);
-            if (dnsResult.success) dnsResult.action = "created";
-          }
-        } else {
-          console.warn(`[Cloudflare] No zone found for ${fullDomain}, skipping DNS update`);
-          dnsResult = { success: false, error: "No zone found for this domain" };
-        }
+         // Same zone (or no old zone found): We can update (PUT) instead of delete/create
+         const effectiveZoneId = targetZoneId || newZoneId;
+         
+         if (effectiveZoneId) {
+           // Find existing record using the OLD domain name (searchDomain)
+           const listRes = await fetch(
+             `https://api.cloudflare.com/client/v4/zones/${effectiveZoneId}/dns_records?name=${searchDomain}&type=A`,
+             { headers: auth.headers, cache: 'no-store' }
+           );
+           const listData = await listRes.json();
+           
+           if (listData.success && listData.result && listData.result.length > 0) {
+             const recordId = listData.result[0].id;
+             // Update via PUT (This only edits the existing record, avoiding delete/recreate)
+             const updateRes = await fetch(
+               `https://api.cloudflare.com/client/v4/zones/${effectiveZoneId}/dns_records/${recordId}`,
+               {
+                 method: "PUT",
+                 headers: auth.headers,
+                 body: JSON.stringify({
+                   type: "A",
+                   name: fullDomain,       // New or same domain
+                   content: activeDnsIp,   // New or same IP
+                   ttl: 1,
+                   proxied: proxied ?? false
+                 })
+               }
+             );
+             const updateData = await updateRes.json();
+             if (updateData.success) {
+               dnsResult = { success: true, action: "updated" };
+               console.log(`[Cloudflare] DNS record updated: ${searchDomain} → ${fullDomain} (${activeDnsIp})`);
+             } else {
+               console.error(`[Cloudflare] Failed to update DNS: ${JSON.stringify(updateData.errors)}`);
+               dnsResult = { success: false, error: updateData.errors?.[0]?.message || "Failed to update DNS" };
+             }
+           } else {
+             // Existing record not found, create a new one for the new domain
+             const sub = subdomain || (rootDomain ? fullDomain.replace(`.${rootDomain}`, '') : fullDomain);
+             dnsResult = await addCloudflareDNSRecord(effectiveZoneId, sub, rootDomain || '', activeDnsIp, proxied ?? false);
+             if (dnsResult.success) dnsResult.action = "created";
+           }
+         } else {
+            console.warn(`[Cloudflare] No zone found for ${fullDomain}, skipping DNS update`);
+            dnsResult = { success: false, error: "No zone found for this domain" };
+         }
       }
     }
 
